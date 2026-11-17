@@ -1,0 +1,3015 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>은지몬 - 사회·문화 인구 부양비 마스터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FEFCE8;
+            background-image: radial-gradient(#FDE047 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            color: #422006;
+            overflow-x: hidden;
+        }
+        .font-game {
+            font-family: 'Jua', sans-serif;
+        }
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+            animation: bounceSlow 2.2s infinite ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.75); opacity: 0; }
+            70% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
+        }
+        .glow-gold {
+            animation: pulseGlow 2s infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF9C3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FACC15;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 상단 고정 HUD (트레이너 상태 및 메뉴) -->
+    <header class="sticky top-0 z-30 bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 border-b-4 border-amber-500 shadow-md">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <!-- 왼쪽: 타이틀 & 현재 파트너 은지몬 -->
+            <div class="flex items-center gap-3">
+                <div id="hud-avatar" class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl border-[3px] border-amber-600 flex items-center justify-center shadow-inner shrink-0 cursor-pointer hover:scale-105 transition" onclick="openDexModal()" title="진화 도감 열기">
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] sm:text-xs font-bold text-amber-900 bg-yellow-100/90 px-2 py-0.5 rounded-full border border-amber-400">
+                            사회·문화 · 인구 부양비 표분석
+                        </span>
+                        <span id="hud-stage-name" class="text-[11px] sm:text-xs font-extrabold text-white bg-amber-600 px-2 py-0.5 rounded-full">
+                            Lv.1 황금빛 은지몬 알
+                        </span>
+                    </div>
+                    <h1 class="text-lg sm:text-2xl font-game text-amber-950 tracking-tight leading-tight mt-0.5">
+                        👶👵 은지몬 <span class="text-amber-800 text-base sm:text-lg">인구 부양비 마스터</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- 중앙: 경험치(XP) 게이지 -->
+            <div class="flex-1 min-w-[160px] max-w-xs mx-2">
+                <div class="flex justify-between text-xs font-extrabold text-amber-950 mb-1">
+                    <span>경험치 (XP)</span>
+                    <span id="xp-text">0 / 100 XP</span>
+                </div>
+                <div class="w-full h-3.5 bg-amber-100 rounded-full border-2 border-amber-600 overflow-hidden p-0.5">
+                    <div id="xp-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: 5%;"></div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 도감, 인증서, 사운드 버튼 -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="openDexModal()" class="bg-white hover:bg-yellow-50 text-amber-950 font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>📖</span><span>진화도감</span>
+                </button>
+                <button onclick="openCertModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-800 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>🎓</span><span>인증서</span>
+                </button>
+                <button onclick="resetProgress()" class="bg-white hover:bg-yellow-50 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="처음부터 다시 하기 (경험치·풀이 기록 지우기)">
+                    <span>🔄</span><span>처음부터</span>
+                </button>
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="bg-yellow-100 hover:bg-yellow-200 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="효과음 켜기/끄기">
+                    <span id="sound-icon">🔊</span><span id="sound-label">소리 켬</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 스테이지 탭 네비게이션 -->
+        <div class="bg-amber-100/90 border-t border-amber-400">
+            <div class="max-w-5xl mx-auto px-2 sm:px-6 py-1.5 flex overflow-x-auto gap-1.5" id="stage-tabs">
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 학습 컨테이너 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-6">
+        <div id="stage-container" class="bg-white rounded-3xl border-4 border-amber-400 shadow-xl p-4 sm:p-8 transition-all">
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="text-center py-4 text-xs text-amber-800/70 font-medium">
+        사회·문화 · 인구 구조와 부양비 표분석 학습 게임 · 은지몬 트레이닝 센터
+    </footer>
+
+    <!-- 모달 1: 무시무시한 도깨비 은지몬 오답 경고 팝업 -->
+    <div id="goblin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div id="goblin-card" class="bg-gradient-to-b from-slate-900 via-red-950 to-slate-950 border-4 border-red-500 rounded-3xl max-w-md w-full p-6 text-white shadow-2xl relative animate-pop-in">
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-red-600 text-yellow-300 font-game text-sm sm:text-base px-4 py-1 rounded-full border-2 border-yellow-300 shadow-lg whitespace-nowrap">
+                ⚡ 도깨비 은지몬 출현! ⚡
+            </div>
+            <div class="flex flex-col items-center text-center mt-2">
+                <div id="goblin-svg-box" class="w-36 h-36 my-2 animate-bounce-slow"></div>
+                <h3 class="font-game text-2xl sm:text-3xl text-red-400 tracking-wide mt-1">
+                    "어허! 다시 풀어봐!!"
+                </h3>
+                <p id="goblin-target-label" class="text-xs sm:text-sm font-bold text-yellow-300 bg-red-900/70 px-3 py-1 rounded-full mt-2 border border-red-500/50">
+                    틀린 항목
+                </p>
+                <div class="bg-slate-800/90 border-2 border-amber-400/80 rounded-2xl p-4 mt-4 w-full text-left shadow-inner">
+                    <div class="flex items-center gap-1.5 text-amber-400 font-extrabold text-xs sm:text-sm mb-1.5">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>도깨비 은지몬의 특별 힌트</span>
+                    </div>
+                    <p id="goblin-hint-text" class="text-sm sm:text-base text-slate-100 leading-relaxed font-medium"></p>
+                </div>
+                <button id="goblin-close-btn" onclick="closeGoblinModal()" class="mt-5 w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-game text-lg py-3 rounded-2xl border-2 border-yellow-300 shadow-lg active:translate-y-0.5 transition cursor-pointer">
+                    🔥 알겠어요! 다시 풀어볼게요
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 2: 은지몬 진화 축하 팝업 -->
+    <div id="evo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-gradient-to-b from-yellow-200 via-amber-100 to-white border-4 border-amber-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl animate-pop-in">
+            <div class="inline-block bg-amber-500 text-white font-game text-sm px-4 py-1 rounded-full mb-2 shadow">
+                ✨ 축하합니다! 진화 성공! ✨
+            </div>
+            <h3 class="font-game text-2xl sm:text-3xl text-amber-950">
+                은지몬이 진화했습니다!
+            </h3>
+            <div id="evo-svg-box" class="w-40 h-40 mx-auto my-4 bg-white rounded-full border-4 border-yellow-400 flex items-center justify-center shadow-inner glow-gold"></div>
+            <p id="evo-new-name" class="font-game text-2xl text-amber-700"></p>
+            <p id="evo-new-desc" class="text-sm text-amber-900 mt-1 font-medium"></p>
+            <button onclick="closeEvoModal()" class="mt-5 w-full bg-amber-500 hover:bg-amber-600 text-white font-game text-lg py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                신난다! 계속 모험하기 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- 모달 3: 은지몬 5단계 진화 도감 -->
+    <div id="dex-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-amber-50 border-4 border-amber-500 rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl animate-pop-in overflow-hidden">
+            <div class="bg-yellow-300 px-6 py-4 border-b-2 border-amber-400 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📖</span>
+                    <h3 class="font-game text-xl sm:text-2xl text-amber-950">은지몬 진화 도감</h3>
+                </div>
+                <button onclick="closeDexModal()" class="w-9 h-9 rounded-full bg-white hover:bg-amber-100 border-2 border-amber-500 text-amber-900 font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-3" id="dex-list"></div>
+        </div>
+    </div>
+
+    <!-- 모달 4: 선생님 제출용 학습 완료 인증서 -->
+    <!-- [추가] 인증서 이미지 저장 창 (스마트폰·태블릿 대응)
+         - 공유 지원 기기: '사진에 저장/공유' 버튼 → 공유 메뉴의 '이미지 저장'으로 사진첩에 저장
+         - 그 밖의 기기: 이미지를 길게 눌러 저장 -->
+    <div id="cert-image-overlay" class="fixed inset-0 hidden items-center justify-center bg-black/80 p-3" style="z-index:70;">
+        <div class="bg-white rounded-3xl border-4 border-emerald-500 w-full max-w-md max-h-[95vh] overflow-y-auto p-4 text-center shadow-2xl">
+            <h3 class="font-game text-xl text-emerald-800 mb-2">🖼️ 인증서 이미지가 완성됐어요!</h3>
+            <img id="cert-image-preview" alt="학습 완료 인증서" class="mx-auto w-full max-w-[320px] rounded-xl border-2 border-amber-300 shadow" style="-webkit-touch-callout: default;">
+            <div id="cert-share-guide" class="mt-3 text-sm font-bold text-slate-700 leading-relaxed"></div>
+            <div class="flex flex-col gap-2 mt-3">
+                <!-- [추가] 카카오톡 등 앱 안 브라우저: 크롬/사파리로 옮겨 열기 (학습 기록도 같이 넘어감) -->
+                <button id="cert-external-btn" onclick="certOpenExternal()" class="hidden w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl border-2 border-sky-700 text-base">
+                    🌐 크롬(인터넷)으로 열어서 저장하기
+                </button>
+                <button id="cert-share-btn" onclick="shareCertImage()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl border-2 border-emerald-700 text-base">
+                    📲 사진에 저장 / 공유하기
+                </button>
+                <button onclick="downloadCertFile()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl border-2 border-amber-700 text-sm">
+                    💾 파일로 다운로드
+                </button>
+                <button onclick="closeCertImageOverlay()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-sm">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cert-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-white border-4 border-amber-500 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl animate-pop-in">
+            <div class="flex items-center justify-between border-b-2 border-amber-200 pb-3 mb-4">
+                <h3 class="font-game text-xl sm:text-2xl text-amber-950">🎓 은지몬 학습 완료 인증서</h3>
+                <button onclick="closeCertModal()" class="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">학번 (예: 20315)</label>
+                    <input type="text" id="student-id-input" oninput="updateCertPreview()" placeholder="학번 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">이름 (예: 김은지)</label>
+                    <input type="text" id="student-name-input" oninput="updateCertPreview()" placeholder="이름 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+            </div>
+            <div id="cert-card-area" class="bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-200 border-4 border-amber-500 rounded-2xl p-5 text-center relative shadow-inner">
+                <div class="text-xs font-extrabold text-amber-700 tracking-widest uppercase">Society & Culture · Dependency Ratio Master</div>
+                <h4 class="font-game text-2xl text-amber-950 mt-1">은지몬 인구 부양비 마스터 인증서</h4>
+                <div id="cert-avatar" class="w-24 h-24 mx-auto my-3 bg-white rounded-full border-[3px] border-amber-500 flex items-center justify-center shadow"></div>
+                <div class="bg-white/90 rounded-xl p-3 border border-amber-300 text-sm space-y-1.5">
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">트레이너:</span>
+                        <span id="cert-student-display" class="font-black text-amber-950">미입력 학생</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">달성 등급:</span>
+                        <span id="cert-rank-display" class="font-black text-orange-600">Lv.1 황금빛 은지몬 알</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">획득 경험치:</span>
+                        <span id="cert-xp-display" class="font-black text-amber-950">0 XP</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">클리어 현황:</span>
+                        <span id="cert-stages-display" class="font-black text-emerald-700">0 / 9 스테이지</span>
+                    </div>
+                </div>
+                <p id="cert-timestamp" class="text-[11px] text-amber-700 mt-3 font-medium"></p>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <!-- [추가] 인증서 이미지 저장 버튼 -->
+                <button onclick="downloadCertImage().catch(() => { const m = document.getElementById('cert-image-msg'); m.textContent = '😢 이미지를 만들지 못했어요. 크롬이나 사파리에서 다시 열어 주세요.'; m.className = 'text-center text-xs font-bold text-rose-600 mt-2'; })" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-emerald-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <span>🖼️</span><span>이미지로 저장</span>
+                </button>
+                <button onclick="copyCertSummary()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl border-2 border-amber-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <i class="fa-regular fa-copy"></i><span>결과 텍스트 복사</span>
+                </button>
+                <button onclick="closeCertModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-sm transition">
+                    닫기
+                </button>
+            </div>
+            <p id="copy-feedback" class="text-center text-xs font-bold text-emerald-600 mt-2 hidden">
+                ✅ 클립보드에 복사되었습니다! 클래스룸/패들렛에 붙여넣기 하세요.
+            </p>
+            <!-- [추가] 이미지 저장 안내 -->
+            <p id="cert-image-msg" class="hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 효과음 시스템 (Web Audio API)
+        // ==========================================
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'clear') {
+                    osc.type = 'triangle';
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                } else if (type === 'goblin') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.linearRampToValueAtTime(85, now + 0.35);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'evolve') {
+                    osc.type = 'sine';
+                    const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.09);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+                    osc.start(now);
+                    osc.stop(now + 0.75);
+                }
+            } catch (e) {
+                console.warn('Audio play failed:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            icon.textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-label').textContent = soundEnabled ? '소리 켬' : '소리 끔';
+        }
+
+        // ==========================================
+        // 2. 귀여운 은지몬 & 무시무시한 도깨비 은지몬 SVG
+        // ==========================================
+        function getEunjimonSVG(level) {
+            if (level === 1) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <ellipse cx="60" cy="105" rx="28" ry="6" fill="#FDE047" opacity="0.6"/>
+                    <path d="M60 18 C36 18 24 48 24 72 C24 94 40 104 60 104 C80 104 96 94 96 72 C96 48 84 18 60 18 Z" fill="#FEF08A" stroke="#CA8A04" stroke-width="4"/>
+                    <path d="M40 48 L50 38 L60 50 L70 38 L80 48" fill="none" stroke="#EAB308" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="44" cy="74" r="6" fill="#FACC15"/>
+                    <circle cx="76" cy="70" r="7" fill="#FACC15"/>
+                    <circle cx="60" cy="86" r="5" fill="#FACC15"/>
+                </svg>`;
+            } else if (level === 2) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M35 45 L22 16 L48 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M22 16 L31 23 L26 28 Z" fill="#422006"/>
+                    <path d="M85 45 L98 16 L72 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M98 16 L89 23 L94 28 Z" fill="#422006"/>
+                    <circle cx="60" cy="68" r="36" fill="#FEF08A" stroke="#854D0E" stroke-width="3.5"/>
+                    <circle cx="46" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="44.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <circle cx="74" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="72.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <circle cx="36" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <circle cx="84" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <path d="M53 75 Q60 82 67 75" fill="none" stroke="#422006" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            } else if (level === 3) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M86 86 L108 72 L100 60 L114 44 L94 52 L100 64 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3" stroke-linejoin="round"/>
+                    <path d="M36 42 L18 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M18 10 L29 18 L23 24 Z" fill="#422006"/>
+                    <path d="M84 42 L102 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M102 10 L91 18 L97 24 Z" fill="#422006"/>
+                    <ellipse cx="60" cy="70" rx="36" ry="34" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <path d="M62 42 L55 51 L61 51 L57 59" fill="none" stroke="#EA580C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="34" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <circle cx="86" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <path d="M51 78 Q60 88 69 78 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            } else if (level === 4) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M22 68 Q12 96 24 108 L96 108 Q108 96 98 68 Z" fill="#EF4444" stroke="#991B1B" stroke-width="3"/>
+                    <path d="M36 42 L16 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M84 42 L104 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="68" r="35" fill="#FACC15" stroke="#854D0E" stroke-width="3.5"/>
+                    <rect x="33" y="54" width="54" height="16" rx="8" fill="#38BDF8" fill-opacity="0.75" stroke="#0369A1" stroke-width="2.5"/>
+                    <circle cx="46" cy="62" r="4.5" fill="#1E293B"/>
+                    <circle cx="74" cy="62" r="4.5" fill="#1E293B"/>
+                    <circle cx="35" cy="77" r="6.5" fill="#F97316"/>
+                    <circle cx="85" cy="77" r="6.5" fill="#F97316"/>
+                    <path d="M50 80 Q60 89 70 80" fill="none" stroke="#422006" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>`;
+            } else {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <circle cx="60" cy="65" r="52" fill="#FEF08A" opacity="0.55"/>
+                    <path d="M34 45 L14 14 L48 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M86 45 L106 14 L72 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="70" r="35" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <path d="M40 36 L44 18 L53 28 L60 14 L67 28 L76 18 L80 36 Z" fill="#F59E0B" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="28" r="3" fill="#EF4444"/>
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.5" fill="#FEF08A"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.5" fill="#FEF08A"/>
+                    <circle cx="34" cy="78" r="7" fill="#EF4444"/>
+                    <circle cx="86" cy="78" r="7" fill="#EF4444"/>
+                    <path d="M49 80 Q60 92 71 80 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            }
+        }
+
+        function getScaryGoblinSVG() {
+            return `
+            <svg viewBox="0 0 140 140" class="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.85)]">
+                <g transform="rotate(22 112 85)">
+                    <rect x="104" y="32" width="16" height="78" rx="8" fill="#78350F" stroke="#FACC15" stroke-width="2.5"/>
+                    <circle cx="107" cy="45" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="55" r="2.5" fill="#FDE047"/>
+                    <circle cx="107" cy="68" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="80" r="2.5" fill="#FDE047"/>
+                </g>
+                <path d="M22 92 Q10 62 32 45 Q28 24 50 28 Q68 8 86 28 Q108 24 104 45 Q126 62 114 92 Z" fill="#DC2626" opacity="0.55"/>
+                <path d="M42 42 L26 10 L56 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M98 42 L114 10 L84 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M30 58 L10 46 L28 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <path d="M110 58 L130 46 L112 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <circle cx="70" cy="76" r="40" fill="#B91C1C" stroke="#450A0A" stroke-width="4"/>
+                <path d="M70 42 C64 50 66 56 70 60 C74 56 76 50 70 42 Z" fill="#FACC15"/>
+                <path d="M40 60 L62 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <path d="M100 60 L78 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <ellipse cx="52" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="53" cy="73" r="3" fill="#7F1D1D"/>
+                <ellipse cx="88" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="87" cy="73" r="3" fill="#7F1D1D"/>
+                <path d="M46 96 Q70 84 94 96 Q84 108 70 105 Q56 108 46 96 Z" fill="#450A0A" stroke="#FEF08A" stroke-width="2"/>
+                <polygon points="52,93 57,103 61,92" fill="#FFFFFF"/>
+                <polygon points="88,93 83,103 79,92" fill="#FFFFFF"/>
+            </svg>`;
+        }
+
+        // ==========================================
+        // 3. 진화 단계 및 스테이지 구성 데이터
+        // ==========================================
+        const EVOLUTION_STAGES = [
+            { level: 1, minXp: 0, name: 'Lv.1 황금빛 은지몬 알', desc: '사회·문화 인구 부양비 분석의 잠재력을 품고 있는 신비로운 노란 알입니다.' },
+            { level: 2, minXp: 100, name: 'Lv.2 아기 은지몬', desc: '유소년 부양비·노년 부양비·노령화 지수의 분모와 분자를 정확히 구분하는 은지몬!' },
+            { level: 3, minXp: 260, name: 'Lv.3 번개 은지몬', desc: '부양 인구를 100으로 놓고 유소년·노년·전체 인구를 번개처럼 뽑아내는 은지몬!' },
+            { level: 4, minXp: 450, name: 'Lv.4 히어로 은지몬', desc: '총부양비로 부양인구 비율(%)을 구하고 전체 인구 배수 조건까지 꿰뚫는 수호자!' },
+            { level: 5, minXp: 760, name: 'Lv.5 전설의 부양비왕 은지몬', desc: '수능특강과 고3 10월 학평 킬러 지역별 인구 부양비 표까지 완전 정복한 전설의 은지몬!' }
+        ];
+
+        const STAGE_LIST = [
+            { id: 0, short: 'Stage 0', title: '부양비·노령화지수 핵심 공식', xp: 80 },
+            { id: 1, short: 'Stage 1', title: '수특 154p 04번', xp: 100 },
+            { id: 2, short: 'Stage 2', title: '수특 4번 (비율 표)', xp: 120 },
+            { id: 3, short: 'Stage 3', title: '수특 4번 (인구수 & 선지)', xp: 130 },
+            { id: 4, short: 'Stage 4', title: '2022 10월 학평 10번 (지역 비율 표)', xp: 120 },
+            { id: 5, short: 'Stage 5', title: '2022 10월 학평 10번 (인구수 & 선지)', xp: 150 },
+            // [추가] 어려워하는 학생을 위한 기초 단계 (탭에서는 해당 Stage 바로 앞에 나옴)
+            { id: 6, short: '디딤돌 1', title: '인구수로 부양비 구하기 (기초)', xp: 60 },
+            { id: 7, short: '디딤돌 2', title: '부양비로 인구 비율(%) 구하기 (기초)', xp: 60 },
+            { id: 8, short: '디딤돌 3', title: '비율(%)로 인구수 구하기 & 배수 조건 (기초)', xp: 60 }
+        ];
+
+        // 탭·진행 순서: 공식 → 디딤돌1 → 수특04 → 디딤돌2 → 비율표 → 디딤돌3 → 인구수표 → 학평
+        const STAGE_ORDER = [0, 6, 1, 7, 2, 8, 3, 4, 5];
+
+        let state = {
+            currentStage: 0,
+            xp: 0,
+            currentLevel: 1,
+            clearedStages: new Set(),
+            lastFocusedInputId: null,
+            userInputs: {},
+            wrongCounts: {},   // [추가] 칸별 오답 횟수 (단계별 힌트용)
+            s0: null,
+            s1: null,
+            s2: null,
+            s3: null,
+            s4: null,
+            s5: null,
+            s6: null,
+            s7: null,
+            s8: null
+        };
+
+        // ==========================================
+        // 4. 유틸리티 & 각 스테이지 문제 생성기
+        // ==========================================
+        function parseFractionOrNumber(str) {
+            const cleaned = String(str).trim().replace(/%/g, '').replace(/명/g, '').replace(/\s+/g, '');
+            if (!cleaned) return NaN;
+            if (cleaned.includes('/')) {
+                const parts = cleaned.split('/');
+                if (parts.length !== 2 || parts[0] === '' || parts[1] === '') return NaN;
+                const num = Number(parts[0]);
+                const den = Number(parts[1]);
+                if (isNaN(num) || isNaN(den) || den === 0) return NaN;
+                return num / den;
+            }
+            const val = Number(cleaned);
+            return isNaN(val) ? NaN : val;
+        }
+
+        function clearStageInputs(stagePrefix) {
+            Object.keys(state.userInputs).forEach(k => {
+                if (k.startsWith(stagePrefix)) {
+                    delete state.userInputs[k];
+                }
+            });
+        }
+
+        function createStage0Data() {
+            return { rewardClaimed: false, mcAnswers: {} };
+        }
+
+        function createStage1Data() {
+            const y1 = 20, o1 = 30, w1 = 100, tot1 = 150, totDep1 = 50;
+            const y2 = 10, o2 = 40, w2 = 100, tot2 = 150, totDep2 = 50;
+            const ag1 = (o1 / y1) * 100;
+            const ag2 = (o2 / y2) * 100;
+
+            return {
+                rewardClaimed: false,
+                y1, o1, w1, tot1, totDep1,
+                y2, o2, w2, tot2, totDep2,
+                ag1: Number(ag1.toFixed(1)),
+                ag2: Number(ag2.toFixed(1)),
+                oxChecks: { 0: null, 1: null, 2: null, 3: null, 4: null }
+            };
+        }
+
+        function createStage2And3Data() {
+            const cols = [
+                { name: 't년 갑국', yDep: 60, oDep: 40 },
+                { name: 't년 을국', yDep: 40, oDep: 60 },
+                { name: 't+50년 갑국', yDep: 50, oDep: 100 },
+                { name: 't+50년 을국', yDep: 25, oDep: 125 }
+            ];
+            const popTotals = [100, 100, 200, 50];
+
+            cols.forEach((c, i) => {
+                c.totDep = c.yDep + c.oDep;
+                c.wPct = Math.round((100 / (100 + c.totDep)) * 100);
+                c.yPct = Math.round((c.yDep / (100 + c.totDep)) * 100);
+                c.oPct = Math.round((c.oDep / (100 + c.totDep)) * 100);
+                c.totPct = 100;
+                c.aging = Number(((c.oDep / c.yDep) * 100).toFixed(1));
+
+                c.totPop = popTotals[i];
+                c.wPop = Math.round((c.wPct / 100) * c.totPop);
+                c.yPop = Math.round((c.yPct / 100) * c.totPop);
+                c.oPop = Math.round((c.oPct / 100) * c.totPop);
+
+                c.altTotPop = c.totPop * 2;
+                c.altWPop = c.wPop * 2;
+                c.altYPop = c.yPop * 2;
+                c.altOPop = c.oPop * 2;
+            });
+
+            return {
+                s2RewardClaimed: false,
+                s3RewardClaimed: false,
+                cols,
+                popTotals,
+                oxChecks: { 0: null, 1: null, 2: null, 3: null, 4: null }
+            };
+        }
+
+        function createStage4And5Data() {
+            const regions = [
+                { name: 'A 지역', totDep: 400, oDep: 50, pop: 400 },
+                { name: 'B 지역', totDep: 150, oDep: 100, pop: 200 },
+                { name: 'C 지역', totDep: 150, oDep: 75, pop: 100 }
+            ];
+
+            regions.forEach(r => {
+                r.yDep = r.totDep - r.oDep;
+                r.wPct = Math.round((100 / (100 + r.totDep)) * 100);
+                r.yPct = Math.round((r.yDep / (100 + r.totDep)) * 100);
+                r.oPct = Math.round((r.oDep / (100 + r.totDep)) * 100);
+                r.totPct = 100;
+
+                r.wPop = Math.round((r.wPct / 100) * r.pop);
+                r.yPop = Math.round((r.yPct / 100) * r.pop);
+                r.oPop = Math.round((r.oPct / 100) * r.pop);
+            });
+
+            const totalNation = {
+                yPop: regions[0].yPop + regions[1].yPop + regions[2].yPop,
+                wPop: regions[0].wPop + regions[1].wPop + regions[2].wPop,
+                oPop: regions[0].oPop + regions[1].oPop + regions[2].oPop,
+                pop: regions[0].pop + regions[1].pop + regions[2].pop
+            };
+            totalNation.totDep = Number((((totalNation.yPop + totalNation.oPop) / totalNation.wPop) * 100).toFixed(1));
+
+            return {
+                s4RewardClaimed: false,
+                s5RewardClaimed: false,
+                regions,
+                totalNation,
+                oxChecks: { 0: null, 1: null, 2: null, 3: null, 4: null }
+            };
+        }
+
+        function initAllProblems() {
+            state.userInputs = {};
+            state.s0 = createStage0Data();
+            state.s1 = createStage1Data();
+            const s23 = createStage2And3Data();
+            state.s2 = s23;
+            state.s3 = s23;
+            const s45 = createStage4And5Data();
+            state.s4 = s45;
+            state.s5 = s45;
+            state.s6 = createStep6Data(false);
+            state.s7 = createStep7Data(false);
+            state.s8 = createStep8Data(false);
+        }
+
+        // ==========================================
+        // 5. 실시간 즉각 채점 & 도깨비 은지몬 팝업 로직
+        // ==========================================
+        function handleCellInput(inputEl) {
+            // [수정] 값을 고치면 이전 채점 결과(초록/빨강)를 지움 (원본은 맞힌 칸을 틀리게 고쳐도 초록색이 남았음)
+            state.userInputs[inputEl.id] = { value: inputEl.value, valid: null, checkedValue: null };
+            saveProgress();
+            inputEl.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-800', 'border-red-500', 'bg-red-50', 'text-red-700');
+            inputEl.classList.add('border-amber-300');
+        }
+
+        function isGoblinOpen() {
+            return !document.getElementById('goblin-modal').classList.contains('hidden');
+        }
+
+        function handleCellEnter(e, inputEl) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // [수정] 같은 Enter가 문서 전체로 전달되어 방금 연 도깨비 팝업이 바로 닫히던 문제
+                e.stopPropagation();
+                if (isGoblinOpen()) { closeGoblinModal(); return; }
+                validateSingleCell(inputEl, true);
+            }
+        }
+
+        function handleCellBlur(inputEl) {
+            if (inputEl.value.trim() === '') return;
+            if (isGoblinOpen()) return;
+            // [수정] 이미 채점한 값이면 다시 팝업을 띄우지 않음 (버튼 클릭 시 팝업 중복 방지)
+            const saved = state.userInputs[inputEl.id];
+            if (saved && saved.checkedValue === inputEl.value.trim()) return;
+            validateSingleCell(inputEl, false);
+        }
+
+        function validateSingleCell(inputEl, moveNextOnSuccess = false) {
+            const rawVal = inputEl.value.trim();
+            if (rawVal === '') return false;
+
+            const userNum = parseFractionOrNumber(rawVal);
+            const expected = Number(inputEl.dataset.answer);
+            const altExpected = inputEl.dataset.altanswer !== undefined && inputEl.dataset.altanswer !== ''
+                ? Number(inputEl.dataset.altanswer)
+                : null;
+            // [수정] 정답이 정수인 칸은 정확히 같아야 정답 (원본은 20.2를 20으로 정답 처리했음)
+            //        66.7처럼 나누어떨어지지 않는 칸만 ±0.2 허용 (66.6 / 66.67 등)
+            const isIntAnswer = Number.isInteger(expected) && (altExpected === null || Number.isInteger(altExpected));
+            const tolerance = inputEl.dataset.tol !== undefined ? Number(inputEl.dataset.tol) : (isIntAnswer ? 1e-9 : 0.2);
+            const label = inputEl.dataset.label || '빈칸';
+            let hint = inputEl.dataset.hint || '부양비와 인구 비율 공식을 다시 한 번 확인해 보세요!';
+            // [수정] '-'처럼 숫자가 아닌 값을 넣으면 아무 안내 없이 멈추던 문제
+            if (isNaN(userNum)) hint = '숫자로 입력해야 해! (예: 30, 66.7, 200/3)<br><br>' + hint;
+
+            // [수정] 소수 정답(예: 66.7)은 66.6~66.75 범위만 인정 (원본 ±0.2는 66.8까지 정답 처리했음)
+            const closeEnough = (v, e) => isIntAnswer
+                ? Math.abs(v - e) <= tolerance
+                : (v >= e - 0.1 - 1e-9 && v <= e + 0.05 + 1e-9);
+            const isPrimaryCorrect = !isNaN(userNum) && closeEnough(userNum, expected);
+            const isAltCorrect = altExpected !== null && !isNaN(userNum) && closeEnough(userNum, altExpected);
+            const isCorrect = isPrimaryCorrect || isAltCorrect;
+
+            if (isCorrect) {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'true', checkedValue: rawVal };
+                inputEl.classList.remove('border-amber-300', 'border-red-500', 'bg-red-50', 'text-red-700');
+                inputEl.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.dataset.valid = 'true';
+                playSound('correct');
+
+                if (moveNextOnSuccess) {
+                    focusNextInput(inputEl);
+                }
+                saveProgress();
+                return true;
+            } else {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'false', checkedValue: rawVal };
+                inputEl.classList.remove('border-amber-300', 'border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.classList.add('border-red-500', 'bg-red-50', 'text-red-700', 'animate-shake');
+                setTimeout(() => inputEl.classList.remove('animate-shake'), 450);
+                inputEl.dataset.valid = 'false';
+
+                state.lastFocusedInputId = inputEl.id;
+                // [추가] 단계별 힌트: 같은 칸을 처음 틀리면 구하는 방법만, 두 번째부터 정답까지
+                const wrongs = (state.wrongCounts[inputEl.id] || 0) + 1;
+                state.wrongCounts[inputEl.id] = wrongs;
+                let shownHint = hint;
+                if (wrongs === 1) {
+                    const masked = maskAnswerInHint(hint, inputEl.dataset.answer);
+                    if (masked) shownHint = masked + '<br><span class="block mt-2 text-amber-300 text-xs sm:text-sm">🔁 같은 칸을 한 번 더 틀리면 정답이 담긴 힌트를 보여 줄게!</span>';
+                }
+                showGoblinModal(label, shownHint);
+                saveProgress();
+                return false;
+            }
+        }
+
+        // 힌트 문장에서 '마지막으로 나오는 정답 숫자'만 ? 로 가린다 (계산 과정은 그대로 보여 줌)
+        function maskAnswerInHint(hint, answer) {
+            const ansStr = String(Number(answer));
+            const re = new RegExp(`(^|[^0-9.])(${ansStr.replace('.', '\\.')})(?![0-9])`, 'g');
+            let last = null, m;
+            while ((m = re.exec(hint)) !== null) last = m;
+            if (!last) return null;
+            const start = last.index + last[1].length;
+            return hint.slice(0, start) + '<strong class="text-yellow-300">?</strong>' + hint.slice(start + ansStr.length);
+        }
+
+        function focusNextInput(currentEl) {
+            const inputs = Array.from(document.querySelectorAll('#stage-container input[data-answer]'));
+            const idx = inputs.indexOf(currentEl);
+            if (idx >= 0 && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            }
+        }
+
+        function showGoblinModal(label, hint) {
+            playSound('goblin');
+            document.getElementById('goblin-svg-box').innerHTML = getScaryGoblinSVG();
+            document.getElementById('goblin-target-label').textContent = `틀린 항목: ${label}`;
+            document.getElementById('goblin-hint-text').innerHTML = hint;
+
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('goblin-close-btn').focus();
+        }
+
+        function closeGoblinModal() {
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            if (state.lastFocusedInputId) {
+                const target = document.getElementById(state.lastFocusedInputId);
+                if (target) {
+                    target.focus();
+                    target.select();
+                }
+                state.lastFocusedInputId = null;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (isGoblinOpen()) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    e.preventDefault();
+                    closeGoblinModal();
+                }
+                return;
+            }
+            // [수정] 도감·인증서·진화 팝업도 Esc로 닫기
+            if (e.key === 'Escape') {
+                closeEvoModal();
+                closeDexModal();
+                if (!document.getElementById('cert-image-overlay').classList.contains('hidden')) { closeCertImageOverlay(); return; }  // [추가]
+                closeCertModal();
+            }
+        });
+
+        // ==========================================
+        // 6. 경험치(XP), 진화, 도감, 인증서 관리
+        // ==========================================
+        function grantStageClear(stageId) {
+            const stageInfo = STAGE_LIST.find(s => s.id === stageId);
+            if (!stageInfo) return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+
+            const isFirstTime = !state.clearedStages.has(stageId);
+            let alreadyRewarded = false;
+
+            if (stageId === 0) alreadyRewarded = state.s0.rewardClaimed;
+            if (stageId === 1) alreadyRewarded = state.s1.rewardClaimed;
+            if (stageId === 2) alreadyRewarded = state.s2.s2RewardClaimed;
+            if (stageId === 3) alreadyRewarded = state.s3.s3RewardClaimed;
+            if (stageId === 4) alreadyRewarded = state.s4.s4RewardClaimed;
+            if (stageId === 5) alreadyRewarded = state.s5.s5RewardClaimed;
+            if (stageId >= 6) alreadyRewarded = state[`s${stageId}`].rewardClaimed;
+
+            if (!isFirstTime && alreadyRewarded) {
+                playSound('correct');
+                return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+            }
+
+            state.clearedStages.add(stageId);
+            if (stageId === 0) state.s0.rewardClaimed = true;
+            if (stageId === 1) state.s1.rewardClaimed = true;
+            if (stageId === 2) state.s2.s2RewardClaimed = true;
+            if (stageId === 3) state.s3.s3RewardClaimed = true;
+            if (stageId === 4) state.s4.s4RewardClaimed = true;
+            if (stageId === 5) state.s5.s5RewardClaimed = true;
+            if (stageId >= 6) state[`s${stageId}`].rewardClaimed = true;
+
+            const gainedXp = isFirstTime ? stageInfo.xp : 20;
+            state.xp += gainedXp;
+
+            let newStageObj = EVOLUTION_STAGES[0];
+            for (const st of EVOLUTION_STAGES) {
+                if (state.xp >= st.minXp) {
+                    newStageObj = st;
+                }
+            }
+
+            const didEvolve = newStageObj.level > state.currentLevel;
+            state.currentLevel = newStageObj.level;
+
+            updateHUD();
+            renderTabs();
+
+            if (didEvolve) {
+                playSound('evolve');
+                document.getElementById('evo-svg-box').innerHTML = getEunjimonSVG(newStageObj.level);
+                document.getElementById('evo-new-name').textContent = newStageObj.name;
+                document.getElementById('evo-new-desc').textContent = newStageObj.desc;
+                const evoModal = document.getElementById('evo-modal');
+                evoModal.classList.remove('hidden');
+                evoModal.classList.add('flex');
+            } else {
+                playSound('clear');
+            }
+
+            saveProgress();
+            return { isFirstTime, gainedXp, alreadyClaimed: false };
+        }
+
+        function closeEvoModal() {
+            const evoModal = document.getElementById('evo-modal');
+            evoModal.classList.add('hidden');
+            evoModal.classList.remove('flex');
+        }
+
+        function updateHUD() {
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const nextEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel + 1);
+
+            document.getElementById('hud-avatar').innerHTML = getEunjimonSVG(state.currentLevel);
+            document.getElementById('hud-stage-name').textContent = curEvo.name;
+
+            if (nextEvo) {
+                document.getElementById('xp-text').textContent = `${state.xp} / ${nextEvo.minXp} XP`;
+                const prevMin = curEvo.minXp;
+                const pct = Math.min(100, Math.max(5, ((state.xp - prevMin) / (nextEvo.minXp - prevMin)) * 100));
+                document.getElementById('xp-bar').style.width = `${pct}%`;
+            } else {
+                document.getElementById('xp-text').textContent = `${state.xp} XP (MAX!)`;
+                document.getElementById('xp-bar').style.width = '100%';
+            }
+        }
+
+        function openDexModal() {
+            const listEl = document.getElementById('dex-list');
+            listEl.innerHTML = EVOLUTION_STAGES.map(st => {
+                const unlocked = state.xp >= st.minXp;
+                return `
+                <div class="flex items-center gap-4 p-3.5 rounded-2xl border-2 ${unlocked ? 'bg-white border-amber-400 shadow-sm' : 'bg-slate-100 border-slate-300 opacity-70'}">
+                    <div class="w-20 h-20 rounded-2xl border-2 ${unlocked ? 'bg-yellow-50 border-amber-400' : 'bg-slate-200 border-slate-300'} flex items-center justify-center shrink-0 p-1">
+                        ${unlocked ? getEunjimonSVG(st.level) : '<span class="text-3xl font-game text-slate-400">?</span>'}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-game text-lg ${unlocked ? 'text-amber-950' : 'text-slate-500'}">
+                                ${unlocked ? st.name : `Lv.${st.level} 미개방 은지몬`}
+                            </span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${unlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                                ${unlocked ? '해금 완료' : `필요 경험치: ${st.minXp} XP`}
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm mt-1 ${unlocked ? 'text-amber-800' : 'text-slate-500'}">
+                            ${unlocked ? st.desc : '학습 문제를 클리어하고 경험치를 모으면 모습이 공개됩니다!'}
+                        </p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const modal = document.getElementById('dex-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDexModal() {
+            const modal = document.getElementById('dex-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openCertModal() {
+            updateCertPreview();
+            document.getElementById('copy-feedback').classList.add('hidden');
+            document.getElementById('cert-image-msg').className = 'hidden';
+            const modal = document.getElementById('cert-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCertModal() {
+            const modal = document.getElementById('cert-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateCertPreview() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const displayStr = (sid || sname) ? `${sid} ${sname}`.trim() : '미입력 학생';
+
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            document.getElementById('cert-avatar').innerHTML = getEunjimonSVG(state.currentLevel);
+            document.getElementById('cert-student-display').textContent = displayStr;
+            document.getElementById('cert-rank-display').textContent = curEvo.name;
+            document.getElementById('cert-xp-display').textContent = `${state.xp} XP`;
+            document.getElementById('cert-stages-display').textContent = `${state.clearedStages.size} / ${STAGE_LIST.length} 스테이지 완료`;
+
+            const now = new Date();
+            document.getElementById('cert-timestamp').textContent =
+                `발급 일시: ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }
+
+        function copyCertSummary() {
+            const sid = document.getElementById('student-id-input').value.trim() || '학번미입력';
+            const sname = document.getElementById('student-name-input').value.trim() || '이름미입력';
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const text = `[은지몬 사회·문화 인구 부양비 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료`;
+
+            // [수정] 최신 Clipboard API 우선, 안 되면 예전 방식
+            const showDone = () => document.getElementById('copy-feedback').classList.remove('hidden');
+            const fallbackCopy = () => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try { document.execCommand('copy'); showDone(); } catch (e) { alert(text); }
+                document.body.removeChild(textarea);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(showDone).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        // ==========================================
+        // [추가] 인증서 이미지(PNG) 저장
+        //  - 화면의 인증서 내용을 캔버스에 다시 그려서 PNG로 내려받음 (외부 라이브러리 없음)
+        //  - 다운로드가 막힌 환경(일부 태블릿·앱 내 브라우저)을 위해 미리보기 이미지도 함께 보여 줌
+        // ==========================================
+        function certFitFont(ctx, text, weightFamily, maxSize, maxWidth) {
+            let size = maxSize;
+            ctx.font = `${weightFamily.replace('{s}', size)}`;
+            while (ctx.measureText(text).width > maxWidth && size > 16) {
+                size -= 2;
+                ctx.font = `${weightFamily.replace('{s}', size)}`;
+            }
+            return size;
+        }
+        function certRoundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function certLoadSvg(svgEl) {
+            return new Promise((resolve) => {
+                if (!svgEl) return resolve(null);
+                const clone = svgEl.cloneNode(true);
+                clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                clone.setAttribute('width', '480');
+                clone.setAttribute('height', '480');
+                clone.removeAttribute('class');
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+            });
+        }
+        async function downloadCertImage() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const msg = document.getElementById('cert-image-msg');
+            if (!sid || !sname) {
+                msg.textContent = '⚠️ 학번과 이름을 먼저 입력해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                document.getElementById(!sid ? 'student-id-input' : 'student-name-input').focus();
+                return;
+            }
+            updateCertPreview();
+            // [추가] PC: 저장한 인증서를 새 창으로 바로 보여 줌.
+            //  버튼을 누른 순간 창을 먼저 열어 둬야 팝업 차단에 걸리지 않음
+            let certWin = null;
+            if (!certIsMobile()) {
+                try {
+                    certWin = window.open('', '_blank');
+                    if (certWin) certWin.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40vh;color:#B45309;font-weight:bold">⏳ 인증서 이미지를 만드는 중...</p>');
+                } catch (e) { certWin = null; }
+            }
+            msg.textContent = '⏳ 인증서 이미지를 만드는 중...';
+            msg.className = 'text-center text-xs font-bold text-amber-700 mt-2';
+
+            // 웹 글꼴(Jua, Noto Sans KR)이 준비될 때까지 잠깐 기다림 (최대 2초)
+            try {
+                await Promise.race([
+                    Promise.all([
+                        document.fonts.load('64px Jua', '은지몬통사몬인증서'),
+                        document.fonts.load('700 36px "Noto Sans KR"', '트레이너달성등급'),
+                        document.fonts.load('900 40px "Noto Sans KR"', '스테이지완료')
+                    ]),
+                    new Promise(r => setTimeout(r, 2000))
+                ]);
+            } catch (e) { /* 글꼴을 못 불러와도 기본 글꼴로 계속 */ }
+
+            const area = document.getElementById('cert-card-area');
+            const subtitle = area.querySelector('div').textContent.trim();
+            const title = area.querySelector('h4').textContent.trim();
+            const rows = [
+                ['트레이너', document.getElementById('cert-student-display').textContent, '#451A03'],
+                ['달성 등급', document.getElementById('cert-rank-display').textContent, '#EA580C'],
+                ['획득 경험치', document.getElementById('cert-xp-display').textContent, '#451A03'],
+                ['클리어 현황', document.getElementById('cert-stages-display').textContent, '#047857']
+            ];
+            const stamp = document.getElementById('cert-timestamp').textContent;
+            const allClear = state.clearedStages.size === STAGE_LIST.length;
+            const avatarImg = await certLoadSvg(document.querySelector('#cert-avatar svg'));
+
+            const W = 1080, H = 1350;
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const SANS = '"Noto Sans KR", sans-serif';
+            const GAME = 'Jua, "Noto Sans KR", sans-serif';
+
+            // 배경 + 테두리
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#FEF9C3'); bg.addColorStop(0.5, '#FFFBEB'); bg.addColorStop(1, '#FEF08A');
+            certRoundRect(ctx, 30, 30, W - 60, H - 60, 56);
+            ctx.fillStyle = bg; ctx.fill();
+            ctx.lineWidth = 18; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            certRoundRect(ctx, 66, 66, W - 132, H - 132, 36);
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            // 영어 부제
+            certFitFont(ctx, subtitle.toUpperCase(), `800 {s}px ${SANS}`, 28, 860);
+            ctx.fillStyle = '#B45309';
+            ctx.fillText(subtitle.toUpperCase(), W / 2, 150);
+            // 제목
+            certFitFont(ctx, title, `{s}px ${GAME}`, 66, 880);
+            ctx.fillStyle = '#451A03';
+            ctx.fillText(title, W / 2, 230);
+
+            // 캐릭터
+            const cx = W / 2, cy = 440, r = 150;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.lineWidth = 9; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            if (avatarImg) ctx.drawImage(avatarImg, cx - 120, cy - 120, 240, 240);
+
+            // 정보 상자
+            const bx = 110, by = 640, bw = W - 220, rowH = 104;
+            certRoundRect(ctx, bx, by, bw, rowH * rows.length + 40, 28);
+            ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fill();
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+            rows.forEach(([label, value, color], i) => {
+                const y = by + 20 + rowH * i + rowH / 2;
+                ctx.textAlign = 'left';
+                ctx.font = `700 34px ${SANS}`; ctx.fillStyle = '#B45309';
+                ctx.fillText(label, bx + 44, y);
+                ctx.textAlign = 'right';
+                certFitFont(ctx, value, `900 {s}px ${SANS}`, 40, bw - 300);
+                ctx.fillStyle = color;
+                ctx.fillText(value, bx + bw - 44, y);
+                if (i < rows.length - 1) {
+                    ctx.beginPath(); ctx.moveTo(bx + 36, y + rowH / 2); ctx.lineTo(bx + bw - 36, y + rowH / 2);
+                    ctx.lineWidth = 2; ctx.strokeStyle = '#FEF3C7'; ctx.stroke();
+                }
+            });
+
+            // 발급 일시
+            ctx.textAlign = 'center';
+            ctx.font = `500 28px ${SANS}`; ctx.fillStyle = '#B45309';
+            ctx.fillText(stamp, W / 2, by + rowH * rows.length + 110);
+
+            // 모든 스테이지 클리어 시 도장
+            if (allClear) {
+                ctx.save();
+                ctx.translate(W - 205, 480); ctx.rotate(-0.25);
+                ctx.globalAlpha = 0.85;
+                ctx.beginPath(); ctx.arc(0, 0, 92, 0, Math.PI * 2);
+                ctx.lineWidth = 8; ctx.strokeStyle = '#DC2626'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 78, 0, Math.PI * 2);
+                ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#DC2626';
+                ctx.font = `44px ${GAME}`; ctx.fillText('마스터', 0, -14);
+                ctx.font = `30px ${GAME}`; ctx.fillText('달성!', 0, 30);
+                ctx.restore();
+            }
+
+            const safe = s => s.replace(/[\\/:*?"<>|\s]+/g, '_');
+            const fileName = `${safe(title)}_${safe(sid)}_${safe(sname)}.png`;
+            let url;
+            try { url = canvas.toDataURL('image/png'); } catch (e) {
+                if (certWin) certWin.close();
+                msg.textContent = '😢 이미지를 만들지 못했어요. 결과 텍스트 복사를 이용해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                return;
+            }
+            // [수정] 스마트폰·태블릿 대응: 바로 다운로드 대신 저장 창을 띄움
+            const blob = await new Promise(res => { try { canvas.toBlob(res, 'image/png'); } catch (e) { res(null); } });
+            certImageData = { url, blob, fileName };
+            document.getElementById('cert-image-preview').src = url;
+
+            const ua = navigator.userAgent || '';
+            const isMobile = certIsMobile();
+            const isInApp = /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps|Whale\/.*Mobile.*inapp/i.test(ua);
+            let canShareFile = false;
+            try {
+                canShareFile = !!(blob && navigator.canShare && navigator.share &&
+                    navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] }));
+            } catch (e) { canShareFile = false; }
+
+            const guide = document.getElementById('cert-share-guide');
+            const shareBtn = document.getElementById('cert-share-btn');
+            shareBtn.classList.toggle('hidden', !canShareFile || isInApp);
+            document.getElementById('cert-external-btn').classList.toggle('hidden', !(isMobile && isInApp));
+            if (!isMobile) {
+                guide.innerHTML = `✅ <b>${fileName}</b> 파일을 내려받았어요.<br>
+                    <span class="text-xs text-slate-500">저장 위치: <b>다운로드</b> 폴더 (크롬에서 <b>Ctrl+J</b>, 맥은 <b>⌘+Shift+J</b>를 누르면 바로 보여요)</span><br>클래스룸/패들렛에 올려 주세요.`;
+                downloadCertFile();  // PC는 지금처럼 바로 다운로드
+                showCertInWindow(certWin, url, fileName);  // [추가] 저장한 이미지를 새 창으로
+            } else if (isInApp) {
+                // [수정] 카카오톡·네이버 앱 안 브라우저는 다운로드·공유가 막혀 있음 → 크롬/사파리로 옮겨 저장
+                guide.innerHTML = `⚠️ <span class="text-rose-600">카카오톡·네이버 앱 안에서는 사진 저장이 막혀 있어요.</span><br>
+                    아래 <span class="text-sky-700">파란 버튼</span>을 누르면 크롬(아이폰은 사파리)에서 열려요.<br>
+                    <span class="text-xs text-slate-500">경험치·클리어 기록은 그대로 넘어가요. 열린 화면에서 학번·이름을 다시 쓰고 '이미지로 저장'을 눌러 주세요.</span>`;
+            } else if (canShareFile) {
+                guide.innerHTML = `📲 아래 초록 버튼 → <span class="text-emerald-700">'이미지 저장'</span>(아이폰) 또는 <span class="text-emerald-700">'갤러리/사진'</span>(안드로이드)을 고르세요.<br>
+                    <span class="text-xs text-slate-500">클래스룸·카카오톡으로 바로 보내도 돼요. 안 되면 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            } else {
+                guide.innerHTML = `👆 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> '이미지 저장' 또는 '이미지 다운로드'를 누르세요.`;
+            }
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.remove('hidden'); ov.classList.add('flex');
+            msg.className = 'hidden';
+            if (typeof playSound === 'function') playSound('correct');
+        }
+
+        let certImageData = null;
+        function closeCertImageOverlay() {
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.add('hidden'); ov.classList.remove('flex');
+        }
+        // 공유 메뉴 열기 (버튼을 누른 순간 바로 호출해야 휴대폰에서 막히지 않음)
+        function shareCertImage() {
+            if (!certImageData || !certImageData.blob) return downloadCertFile();
+            const file = new File([certImageData.blob], certImageData.fileName, { type: 'image/png' });
+            navigator.share({ files: [file], title: certImageData.fileName })
+                .then(() => {
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `✅ 완료! '이미지 저장'을 골랐다면 <span class="text-emerald-700">사진 앱(갤러리)의 최근 항목</span>에 있어요.<br>
+                        <span class="text-xs text-slate-500">위 이미지를 확인하고 클래스룸/패들렛에 올려 주세요.</span>`;
+                })
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return; // 학생이 공유 창을 닫은 경우
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `👆 공유가 안 되는 기기예요. 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> 저장해 주세요.`;
+                });
+        }
+        // [추가] 학습 기록을 주소에 담아 외부 브라우저(크롬/사파리)로 옮겨 열기
+        const CERT_MOVE_PARAM = 'eunjimon-move';
+        function certEncode(obj) {
+            const bin = unescape(encodeURIComponent(JSON.stringify(obj)));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function certDecode(str) {
+            const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+        }
+        function certOpenExternal() {
+            saveProgress();
+            let saved = null;
+            try { saved = localStorage.getItem(SAVE_KEY); } catch (e) { }
+            // [수정] 개인정보 보호: 학번·이름은 주소에 싣지 않음(학습 기록만 넘김). 학생이 크롬에서 다시 입력
+            const payload = certEncode({ k: SAVE_KEY, d: saved });
+            const base = location.origin + location.pathname;
+            const ua = navigator.userAgent || '';
+            const isAndroid = /Android/i.test(ua);
+            if (/KAKAOTALK/i.test(ua)) {
+                // 카카오톡 공식 '외부 브라우저로 열기' 주소
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(`${base}#${CERT_MOVE_PARAM}=${payload}`);
+            } else if (isAndroid) {
+                // 안드로이드: 크롬 앱으로 바로 열기
+                const noScheme = `${base}?${CERT_MOVE_PARAM}=${payload}`.replace(/^https?:\/\//, '');
+                location.href = `intent://${noScheme}#Intent;scheme=${location.protocol.replace(':', '')};package=com.android.chrome;end`;
+            } else {
+                // 아이폰(카카오톡 외 앱): 사파리로 열기 (iOS 17 이상)
+                location.href = `x-safari-${base}#${CERT_MOVE_PARAM}=${payload}`;
+            }
+            setTimeout(() => {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `🔄 안 열리면 화면 오른쪽 위/아래 <b>⋮ 또는 ⋯</b> → <b>'다른 브라우저로 열기'</b>를 눌러 주세요.<br>
+                    <span class="text-xs text-slate-500">이 경우 학습 기록은 넘어가지 않으니, 열린 화면에서 같은 휴대폰으로 다시 이어서 풀어야 해요.</span>`;
+            }, 2500);
+        }
+        // 크롬/사파리에서 열렸을 때 넘어온 기록 받기 (기존 기록보다 경험치가 같거나 많을 때만 덮어씀)
+        function certImportFromUrl() {
+            try {
+                const re = new RegExp('[#?&]' + CERT_MOVE_PARAM + '=([A-Za-z0-9_-]+)');
+                const m = (location.hash + '&' + location.search).match(re);
+                if (!m) return null;
+                history.replaceState(null, '', location.pathname);  // 주소창에서 기록 지우기
+                const p = certDecode(m[1]);
+                if (p.k !== SAVE_KEY) return null;
+                if (p.d) {
+                    const inXp = Number(JSON.parse(p.d).xp) || 0;
+                    const cur = localStorage.getItem(SAVE_KEY);
+                    const curXp = cur ? (Number(JSON.parse(cur).xp) || 0) : -1;
+                    if (inXp >= curXp) localStorage.setItem(SAVE_KEY, p.d);
+                }
+                return true;
+            } catch (e) { return null; }
+        }
+        function certIsMobile() {
+            const ua = navigator.userAgent || '';
+            return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+        // [추가] 저장한 인증서를 새 창(탭)에 크게 보여 줌. 창이 막혔으면 저장 창의 미리보기로 대신함
+        function showCertInWindow(win, url, fileName) {
+            if (!win || win.closed) return;
+            try {
+                const d = win.document;
+                d.open();
+                d.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title></title></head>
+                    <body style="margin:0;background:#FFFBEB;font-family:'Noto Sans KR',sans-serif;text-align:center;padding:16px;">
+                    <p style="color:#047857;font-weight:800;margin:6px 0;">✅ 다운로드 폴더에 저장한 인증서예요</p>
+                    <p style="color:#78716C;font-size:13px;margin:0 0 12px;"></p>
+                    <img alt="학습 완료 인증서" style="max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.18);">
+                    </body></html>`);
+                d.close();
+                d.title = fileName;
+                d.querySelectorAll('p')[1].textContent = fileName;  // 파일 이름은 글자로만 넣음
+                d.querySelector('img').src = url;
+                win.focus();
+            } catch (e) { /* 새 창이 막히면 저장 창 미리보기로 충분 */ }
+        }
+        function downloadCertFile() {
+            if (!certImageData) return;
+            if (certIsMobile()) {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `💾 다운로드했어요! 아이폰·아이패드는 <span class="text-emerald-700">파일 앱 → 다운로드</span>,
+                    안드로이드는 <span class="text-emerald-700">내 파일 → 다운로드</span>(갤러리의 Download 앨범)에 있어요.<br>
+                    <span class="text-xs text-slate-500">파일이 안 보이면 위 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            }
+            const { url, blob, fileName } = certImageData;
+            const a = document.createElement('a');
+            a.href = blob ? URL.createObjectURL(blob) : url; a.download = fileName;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            if (blob) setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        }
+
+        // ==========================================
+        // 7. 스테이지 탭 및 공통 UI 헬퍼
+        // ==========================================
+        function renderTabs() {
+            const tabsEl = document.getElementById('stage-tabs');
+            tabsEl.innerHTML = STAGE_ORDER.map(id => STAGE_LIST.find(s => s.id === id)).map(st => {
+                const isActive = state.currentStage === st.id;
+                const isCleared = state.clearedStages.has(st.id);
+                return `
+                <button onclick="switchStage(${st.id})" class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition flex items-center gap-1.5 border-2 ${
+                    isActive
+                        ? 'bg-amber-500 text-white border-amber-700 shadow-sm'
+                        : isCleared
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400 hover:bg-emerald-200'
+                            : 'bg-white text-amber-900 border-amber-300 hover:bg-yellow-50'
+                }">
+                    <span>${isCleared ? '✅' : (st.id >= 6 ? '🪜' : '⚡')}</span>
+                    <span>${st.short}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function switchStage(stageId) {
+            state.currentStage = stageId;
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderStageHeader(stageId, subtitle) {
+            const st = STAGE_LIST.find(s => s.id === stageId);
+            return `
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b-2 border-amber-200 pb-4 mb-5">
+                <div>
+                    <span class="bg-amber-400 text-amber-950 font-game text-xs sm:text-sm px-3 py-0.5 rounded-full border border-amber-600">
+                        ${st.short} · 보상 +${st.xp} XP
+                    </span>
+                    <h2 class="font-game text-2xl sm:text-3xl text-amber-950 mt-1.5">${st.title}</h2>
+                    <p class="text-xs sm:text-sm text-amber-800 mt-0.5">${subtitle}</p>
+                </div>
+            </div>`;
+        }
+
+        function renderInputGuideBanner(tipText = '') {
+            return `
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold">
+                    <span class="text-base">💡</span>
+                    <span>숫자를 입력한 뒤 <kbd class="px-1.5 py-0.5 bg-white border border-amber-400 rounded font-mono text-xs">Enter</kbd>를 누르거나 다음 칸으로 이동하면 즉시 채점됩니다! ${tipText}</span>
+                </div>
+            </div>`;
+        }
+
+        function escapeAttr(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function makeNumInput(id, answer, unit, label, hint, placeholder = '?', widthClass = 'w-16 sm:w-20', altAnswer = '') {
+            const saved = state.userInputs[id];
+            const savedVal = escapeAttr(saved && saved.value !== undefined ? saved.value : '');
+            let stateClasses = 'border-amber-300 bg-yellow-50/50 focus:bg-white focus:border-amber-500';
+            if (saved && saved.valid === 'true') {
+                stateClasses = 'border-emerald-500 bg-emerald-50 text-emerald-800';
+            } else if (saved && saved.valid === 'false') {
+                stateClasses = 'border-red-500 bg-red-50 text-red-700';
+            }
+
+            return `
+            <div class="inline-flex items-center justify-center gap-1">
+                <input
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    id="${id}"
+                    value="${savedVal}"
+                    data-answer="${answer}"
+                    ${altAnswer !== '' ? `data-altanswer="${altAnswer}"` : ''}
+                    data-label="${escapeAttr(label)}"
+                    data-hint="${escapeAttr(hint)}"
+                    oninput="handleCellInput(this)"
+                    onkeydown="handleCellEnter(event, this)"
+                    onblur="handleCellBlur(this)"
+                    placeholder="${placeholder}"
+                    class="${widthClass} text-center font-extrabold text-xs sm:text-sm py-1.5 px-1.5 rounded-xl border-2 focus:outline-none transition ${stateClasses}"
+                >
+                ${unit ? `<span class="text-xs font-bold text-amber-900 shrink-0">${unit}</span>` : ''}
+            </div>`;
+        }
+
+        // ==========================================
+        // 8. 각 스테이지(Stage 0 ~ 5) 렌더링 및 검증
+        // ==========================================
+        function renderCurrentStage() {
+            const container = document.getElementById('stage-container');
+            switch (state.currentStage) {
+                case 0: container.innerHTML = renderStage0(); break;
+                case 1: container.innerHTML = renderStage1(); break;
+                case 2: container.innerHTML = renderStage2(); break;
+                case 3: container.innerHTML = renderStage3(); break;
+                case 4: container.innerHTML = renderStage4(); break;
+                case 5: container.innerHTML = renderStage5(); break;
+                case 6: container.innerHTML = renderStage6(); break;
+                case 7: container.innerHTML = renderStage7(); break;
+                case 8: container.innerHTML = renderStage8(); break;
+            }
+            saveProgress();
+        }
+
+        // --- STAGE 0: 부양비 & 노령화 지수 핵심 공식 ---
+        let S0_QUESTIONS = [];
+        function renderStage0() {
+            const questions = S0_QUESTIONS = [
+                {
+                    key: 'youth',
+                    term: '1. 유소년 부양비 공식',
+                    options: [
+                        '{유소년 인구(0~14세) / 부양 인구(15~64세)} × 100',
+                        '{유소년 인구(0~14세) / 전체 인구} × 100',
+                        '{유소년 인구(0~14세) / 노년 인구(65세 이상)} × 100'
+                    ],
+                    correct: 0,
+                    hint: '모든 <strong>부양비(유소년·노년·총부양비)</strong>의 분모는 항상 <strong>부양 인구(15~64세 생산연령인구)</strong>야!'
+                },
+                {
+                    key: 'old',
+                    term: '2. 노년 부양비 공식',
+                    options: [
+                        '{노년 인구(65세 이상) / 유소년 인구(0~14세)} × 100',
+                        '{노년 인구(65세 이상) / 부양 인구(15~64세)} × 100',
+                        '{부양 인구(15~64세) / 노년 인구(65세 이상)} × 100'
+                    ],
+                    correct: 1,
+                    hint: '<strong>노년 부양비</strong> 역시 분모는 <strong>부양 인구(15~64세 인구)</strong>이고, 분자가 <strong>노년 인구(65세 이상)</strong>야!'
+                },
+                {
+                    key: 'total',
+                    term: '3. 총부양비 공식',
+                    options: [
+                        '노년 부양비 - 유소년 부양비',
+                        '(노년 부양비 ÷ 유소년 부양비) × 100',
+                        '유소년 부양비 + 노년 부양비 = {(유소년 인구 + 노년 인구) / 부양 인구} × 100'
+                    ],
+                    correct: 2,
+                    hint: '<strong>총부양비</strong>는 부양 인구가 부양해야 할 유소년과 노년을 합친 비율이므로 <strong>유소년 부양비 + 노년 부양비</strong>와 같아!'
+                },
+                {
+                    key: 'aging',
+                    term: '4. 노령화 지수 공식 (분모 주의!)',
+                    options: [
+                        '{노년 인구(65세 이상) / 유소년 인구(0~14세)} × 100 = (노년 부양비 / 유소년 부양비) × 100',
+                        '{노년 인구(65세 이상) / 부양 인구(15~64세)} × 100',
+                        '{유소년 인구(0~14세) / 노년 인구(65세 이상)} × 100'
+                    ],
+                    correct: 0,
+                    hint: '<strong>노령화 지수</strong>만 유일하게 분모가 <strong>유소년 인구(0~14세)</strong>야! (노년 인구 ÷ 유소년 인구) × 100 또는 (노년 부양비 ÷ 유소년 부양비) × 100으로 구할 수 있어!'
+                },
+                {
+                    key: 'trick',
+                    term: '5. [은지몬 초고속 비법] 부양비 표를 보고 인구 비율(%) 구하기',
+                    options: [
+                        '부양 인구를 무조건 100으로 놓으면, 유소년 인구는 유소년 부양비 그대로, 노년 인구는 노년 부양비 그대로가 되어 전체 인구는 (100 + 총부양비)가 된다!',
+                        '전체 인구를 무조건 100으로 놓으면 유소년 부양비가 곧 유소년 인구 비율(%)이 된다.',
+                        '부양비만 주어졌을 때는 연령별 인구 구성 비율(%)을 절대로 구할 수 없다.'
+                    ],
+                    correct: 0,
+                    hint: '부양비의 분모는 모두 <strong>부양 인구</strong>야! 따라서 <strong>부양 인구 = 100</strong>으로 놓으면 유소년=유소년부양비, 노년=노년부양비가 되고, 전체 인구는 <strong>100 + 총부양비</strong>가 되어 비율(%)을 단숨에 구할 수 있어!'
+                }
+            ];
+
+            return `
+            ${renderStageHeader(0, '부양비 문제의 90%는 ‘부양 인구 = 100’으로 놓는 순간 10초 만에 풀립니다! 공식을 먼저 확인하세요.')}
+            <div class="space-y-3.5">
+                ${questions.map(q => {
+                    const picked = state.s0.mcAnswers[q.key];
+                    return `
+                    <div class="bg-yellow-50/70 border-2 border-amber-300 rounded-2xl p-4">
+                        <div class="font-game text-lg sm:text-xl text-amber-950 mb-2">${q.term}</div>
+                        <div class="grid grid-cols-1 gap-2">
+                            ${q.options.map((opt, oIdx) => `
+                                <button onclick="selectS0Mc('${q.key}', ${oIdx})"
+                                    class="text-left px-3.5 py-2.5 rounded-xl border-2 text-xs sm:text-sm font-bold transition ${
+                                        picked === oIdx
+                                            ? 'bg-emerald-100 border-emerald-500 text-emerald-950'
+                                            : 'bg-white border-amber-200 hover:border-amber-400 text-amber-900'
+                                    }">
+                                    ${picked === oIdx ? '✅ ' : '⬜ '} ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+            <div id="s0-result" class="mt-5"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="verifyStage0()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 0 공식 마스터 완료 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS0Mc(key, idx) {
+            const q = S0_QUESTIONS.find(item => item.key === key);
+            if (!q) return;
+            const correctIdx = q.correct, title = q.term, hint = q.hint;
+            if (idx === correctIdx) {
+                state.s0.mcAnswers[key] = idx;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(title, hint);
+            }
+        }
+
+        function verifyStage0() {
+            const keys = ['youth', 'old', 'total', 'aging', 'trick'];
+            if (!keys.every(k => state.s0.mcAnswers[k] !== undefined)) {
+                showGoblinModal('공식 미완성', '5가지 부양비 핵심 공식을 모두 선택해 보아라!');
+                return;
+            }
+            const reward = grantStageClear(0);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s0-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 0 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">부양비 공식과 ‘부양인구=100’ 비법을 익혔습니다! 수특 04번 전에 디딤돌 1에서 쉬운 계산으로 몸을 풀어 볼까요?</p>
+                ${nextStageButton(0)}
+            </div>`;
+        }
+
+        // --- STAGE 1: 1쪽 수특 154p [26022-0220] 04번 ---
+        function renderStage1() {
+            const d = state.s1;
+            const oxItems = [
+                {
+                    idx: 0,
+                    text: '① 총부양비는 t년과 t+10년이 동일하다.',
+                    ans: true,
+                    hint: `총부양비 = 유소년 부양비 + 노년 부양비야! t년은 <strong>${d.y1} + ${d.o1} = ${d.totDep1}</strong>이고, t+10년은 <strong>${d.y2} + ${d.o2} = ${d.totDep2}</strong>으로 서로 동일해! (<strong>참 O</strong>)`
+                },
+                {
+                    idx: 1,
+                    text: `② 노년 인구는 t+10년이 t년의 2배이다.`,
+                    ans: false,
+                    hint: `t년과 t+10년의 부양 인구가 100으로 동일하므로, 노년 인구는 t년 <strong>${d.o1}</strong>에서 t+10년 <strong>${d.o2}</strong>이 되었어! 2배가 아니라 <strong>${d.o2}/${d.o1}배</strong>야! (<strong>거짓 X</strong>)`
+                },
+                {
+                    idx: 2,
+                    text: '③ 총인구는 t년 대비 t+10년에 감소하였다.',
+                    ans: false,
+                    hint: `부양 인구가 100으로 동일할 때 전체 인구는 t년(<strong>${d.tot1}</strong>)과 t+10년(<strong>${d.tot2}</strong>)이 서로 <strong>같다!</strong> 감소하지 않았으므로 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 3,
+                    text: `④ 유소년 인구에 대한 노년 인구의 비는 t+10년이 t년의 2배이다.`,
+                    ans: false,
+                    hint: `‘유소년 인구에 대한 노년 인구의 비’는 <strong>노년 인구 ÷ 유소년 인구</strong>야! t년은 <strong>${d.o1}/${d.y1} = ${(d.o1/d.y1).toFixed(1)}</strong>이고, t+10년은 <strong>${d.o2}/${d.y2} = ${(d.o2/d.y2).toFixed(1)}</strong>야! 2배가 아니므로 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 4,
+                    text: '⑤ 총인구에서 유소년 인구가 차지하는 비율은 t+10년이 t년보다 높다.',
+                    ans: false,
+                    hint: `총인구에서 유소년 인구가 차지하는 비율은 t년이 <strong>${d.y1}/${d.tot1}</strong>이고, t+10년이 <strong>${d.y2}/${d.tot2}</strong>야! <strong>${d.y1}/${d.tot1} &gt; ${d.y2}/${d.tot2}</strong>이므로 t+10년이 t년보다 낮아! (<strong>거짓 X</strong>)`
+                }
+            ];
+
+            OX_REGISTRY.s1 = oxItems;
+            return `
+            ${renderStageHeader(1, '수특 154p [26022-0220] 04번 원본 문제 분석 (단, t년과 t+10년의 부양 인구는 동일함)')}
+            ${renderInputGuideBanner('<strong>Tip:</strong> t년과 t+10년의 <strong>부양 인구를 각각 100</strong>으로 놓고 ✏️ [Step 1] 표를 채워 보세요!')}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <!-- 왼쪽: 수특 원본 표 -->
+                <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4">
+                    <div class="font-extrabold text-amber-950 text-sm mb-2">📋 [수특 원본 자료] 갑국의 유소년·노년 부양비</div>
+                    <table class="w-full text-center border-collapse bg-white rounded-xl overflow-hidden border-2 border-amber-400 text-sm font-bold mb-3">
+                        <thead>
+                            <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                                <th class="p-2.5 border-r border-amber-400">구분</th>
+                                <th class="p-2.5 border-r border-amber-400">t년</th>
+                                <th class="p-2.5">t+10년</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-amber-200">
+                            <tr>
+                                <td class="p-2.5 border-r border-amber-300 bg-amber-50">유소년 부양비</td>
+                                <td class="p-2.5 border-r border-amber-200 text-lg font-extrabold">${d.y1}</td>
+                                <td class="p-2.5 text-lg font-extrabold">${d.y2}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 border-r border-amber-300 bg-amber-50">노년 부양비</td>
+                                <td class="p-2.5 border-r border-amber-200 text-lg font-extrabold">${d.o1}</td>
+                                <td class="p-2.5 text-lg font-extrabold">${d.o2}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-xs text-amber-900 font-bold leading-relaxed">
+                        * 유소년 부양비 = (유소년 인구 / 부양 인구) × 100<br>
+                        * 노년 부양비 = (노년 인구 / 부양 인구) × 100<br>
+                        * 총부양비 = 유소년 부양비 + 노년 부양비
+                    </p>
+                </div>
+
+                <!-- 오른쪽: 학생이 채우는 표 -->
+                <div class="bg-white border-2 border-amber-400 rounded-2xl p-4">
+                    <div class="font-extrabold text-amber-950 text-sm mb-2">✏️ [Step 1] 부양 인구 = 100 기준 인구 표 채우기</div>
+                    <table class="w-full text-center border-collapse border-2 border-amber-400 text-sm font-bold">
+                        <thead>
+                            <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                                <th class="p-2 border-r border-amber-400">구분</th>
+                                <th class="p-2 border-r border-amber-400">t년</th>
+                                <th class="p-2">t+10년</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-amber-200">
+                            <tr>
+                                <td class="p-2 border-r border-amber-300 bg-amber-50">유소년 인구</td>
+                                <td class="p-2 border-r border-amber-200">${makeNumInput('s1-y1', d.y1, '', 't년 유소년 인구', `부양 인구를 100으로 놓으면 유소년 인구는 유소년 부양비 그대로 <strong>${d.y1}</strong>이야!`)}</td>
+                                <td class="p-2">${makeNumInput('s1-y2', d.y2, '', 't+10년 유소년 인구', `t+10년 부양 인구를 100으로 놓으면 유소년 인구는 유소년 부양비 그대로 <strong>${d.y2}</strong>이야!`)}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border-r border-amber-300 bg-amber-50">부양 인구 (기준)</td>
+                                <td class="p-2 border-r border-amber-200">${makeNumInput('s1-w1', 100, '', 't년 부양 인구', `단서에 따라 부양 인구를 <strong>100</strong>으로 설정해 봐!`)}</td>
+                                <td class="p-2">${makeNumInput('s1-w2', 100, '', 't+10년 부양 인구', `t년과 t+10년의 부양 인구가 동일하므로 t+10년 부양 인구도 <strong>100</strong>이야!`)}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border-r border-amber-300 bg-amber-50">노년 인구</td>
+                                <td class="p-2 border-r border-amber-200">${makeNumInput('s1-o1', d.o1, '', 't년 노년 인구', `부양 인구가 100일 때 노년 인구는 노년 부양비 그대로 <strong>${d.o1}</strong>이야!`)}</td>
+                                <td class="p-2">${makeNumInput('s1-o2', d.o2, '', 't+10년 노년 인구', `t+10년 부양 인구가 100일 때 노년 인구는 노년 부양비 그대로 <strong>${d.o2}</strong>이야!`)}</td>
+                            </tr>
+                            <tr class="bg-amber-100/70">
+                                <td class="p-2 border-r border-amber-300 font-extrabold">전체 인구</td>
+                                <td class="p-2 border-r border-amber-200">${makeNumInput('s1-tot1', d.tot1, '', 't년 전체 인구', `t년 전체 인구 = 유소년(${d.y1}) + 부양(100) + 노년(${d.o1}) = <strong>${d.tot1}</strong>이야!`)}</td>
+                                <td class="p-2">${makeNumInput('s1-tot2', d.tot2, '', 't+10년 전체 인구', `t+10년 전체 인구 = 유소년(${d.y2}) + 부양(100) + 노년(${d.o2}) = <strong>${d.tot2}</strong>이야!`)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Step 2: 선지 ①~⑤ OX 판별 -->
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5 mb-5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-1">🎯 [Step 2] 선지 ①~⑤를 하나씩 O/X로 검증해 보세요!</p>
+                ${oxItems.map(item => {
+                    const cur = d.oxChecks[item.idx];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkOx('s1', ${item.idx}, true)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkOx('s1', ${item.idx}, false)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s1-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage1()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 1 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage1() {
+            const ids = ['s1-y1', 's1-y2', 's1-w1', 's1-w2', 's1-o1', 's1-o2', 's1-tot1', 's1-tot2'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '인구 표의 8칸을 모두 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            if (![0, 1, 2, 3, 4].every(i => state.s1.oxChecks[i] !== null)) {
+                showGoblinModal('선지 OX 미완료', '선지 ①~⑤의 O/X를 모두 판별해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(1);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s1-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 1 클리어! 정답은 ①번입니다! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">부양 인구를 100으로 놓는 기본기를 완벽히 익혔습니다! 수특 4번 비율(%) 표 전에 디딤돌 2로 연습해 볼까요?</p>
+                ${nextStageButton(1)}
+            </div>`;
+        }
+
+        // --- STAGE 2: 2쪽 상단 수특 [26022-0224] 4번 (구분(비율) 표 완성) ---
+        function renderStage2() {
+            const d = state.s2;
+            const cols = d.cols;
+
+            return `
+            ${renderStageHeader(2, '수특 [26022-0224] 4번 원본! 표는 갑국과 을국의 인구 부양비 변화를 나타낸다.')}
+            ${renderInputGuideBanner('<strong>Tip:</strong> 노령화 지수가 나누어떨어지지 않으면 소수 첫째 자리(예: <code class="bg-white px-1.5 py-0.5 rounded border border-amber-400">66.7</code>)로 적으세요!')}
+
+            <!-- 수특 원본 문제 지문 및 표 카드 -->
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-xs sm:text-sm text-amber-950 space-y-3">
+                <div class="font-extrabold text-orange-900">📋 [수특 원본 문제 표] 갑국과 을국의 인구 부양비 변화</div>
+                <table class="w-full text-center border-collapse bg-white rounded-xl overflow-hidden border-2 border-amber-400 text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th rowspan="2" class="p-2 border-r border-amber-400 w-36">구분</th>
+                            <th colspan="2" class="p-2 border-r border-amber-400">t년</th>
+                            <th colspan="2" class="p-2">t+50년</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2 border-r-2 border-amber-400">을국</th>
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2">을국</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200">
+                        <tr>
+                            <td class="p-2 border-r border-amber-300 bg-amber-50">유소년 부양비</td>
+                            <td class="p-2 border-r border-amber-200">60</td>
+                            <td class="p-2 border-r-2 border-amber-400">40</td>
+                            <td class="p-2 border-r border-amber-200">50</td>
+                            <td class="p-2">25</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 border-r border-amber-300 bg-amber-50">노년 부양비</td>
+                            <td class="p-2 border-r border-amber-200">40</td>
+                            <td class="p-2 border-r-2 border-amber-400">60</td>
+                            <td class="p-2 border-r border-amber-200">100</td>
+                            <td class="p-2">125</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-xs text-amber-900 font-medium">
+                    * 유소년 부양비 = (유소년 인구 / 부양 인구) × 100, 노년 부양비 = (노년 인구 / 부양 인구) × 100<br>
+                    * 노령화 지수 = (노년 인구 / 유소년 인구) × 100, 총부양비 = 유소년 부양비 + 노년 부양비
+                </p>
+            </div>
+
+            <!-- 학생이 채우는 비율(%) 표 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[540px] text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400 w-32">구분 (비율)</th>
+                            <th colspan="2" class="p-2 border-r-2 border-amber-400">t년</th>
+                            <th colspan="2" class="p-2">t+50년</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2 border-r-2 border-amber-400">을국</th>
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2">을국</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 인구(%)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-ypct-${i}`, c.yPct, '%', `${c.name} 유소년 인구(%)`, `${c.name}의 부양인구 비율(${c.wPct}%) × 유소년부양비(${c.yDep}/100) = <strong>${c.yPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">부양 인구(%)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-wpct-${i}`, c.wPct, '%', `${c.name} 부양 인구(%)`, `총부양비가 <strong>${c.totDep}</strong>이므로 부양인구 비율(%) = <strong>{100 ÷ (100 + ${c.totDep})} × 100 = ${c.wPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 인구(%)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-opct-${i}`, c.oPct, '%', `${c.name} 노년 인구(%)`, `${c.name}의 부양인구 비율(${c.wPct}%) × 노년부양비(${c.oDep}/100) = <strong>${c.oPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-amber-100/60">
+                            <td class="p-2.5 border-r-2 border-amber-400 font-extrabold">전체 인구(%)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-totpct-${i}`, 100, '%', `${c.name} 전체 인구(%)`, `유소년 + 부양 + 노년 = 전체 인구 비율은 항상 <strong>100%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="border-t-2 border-amber-400">
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 부양비 (제시)</td>
+                            ${cols.map((c, i) => `<td class="p-2.5 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'} text-base text-amber-950">${c.yDep}</td>`).join('')}
+                        </tr>
+                        <tr class="bg-yellow-50 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-100">노년 부양비 (제시)</td>
+                            ${cols.map((c, i) => `<td class="p-2.5 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'} text-base text-amber-950">${c.oDep}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">총부양비</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-totdep-${i}`, c.totDep, '', `${c.name} 총부양비`, `유소년 부양비(${c.yDep}) + 노년 부양비(${c.oDep}) = <strong>${c.totDep}</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노령화 지수</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s2-aging-${i}`, c.aging, '', `${c.name} 노령화 지수`, `노령화 지수 = (노년 인구 ${c.oPct} ÷ 유소년 인구 ${c.yPct}) × 100 = <strong>(${c.oDep} ÷ ${c.yDep}) × 100 = ${c.aging}</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="s2-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage2()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 2 비율(%) 표 완성 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage2() {
+            const prefixes = ['s2-ypct-', 's2-wpct-', 's2-opct-', 's2-totpct-', 's2-totdep-', 's2-aging-'];
+            for (const p of prefixes) {
+                for (let i = 0; i < 4; i++) {
+                    const id = `${p}${i}`;
+                    const el = document.getElementById(id);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = id;
+                        showGoblinModal('빈칸 미입력', '비율(%) 표와 총부양비, 노령화 지수 빈칸을 모두 채워 넣어라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+
+            const reward = grantStageClear(2);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s2-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 2 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">연령별 인구 비율(%)과 노령화 지수를 모두 구했습니다! 실제 인구수(명) 표 전에 디딤돌 3에서 배수 조건을 연습해 볼까요?</p>
+                ${nextStageButton(2)}
+            </div>`;
+        }
+
+        // [추가] Stage 3에서 참고할 수 있도록 Stage 2에서 완성한 비율(%) 표를 보여 줌
+        //        Stage 2를 클리어했으면 전부, 아직이면 학생이 맞힌 칸만 보여 주고 나머지는 '?'
+        function renderS2ReferenceTable(cols) {
+            const done = state.clearedStages.has(2);
+            const cell = (prefix, i, answer, unit) => {
+                const saved = state.userInputs[`${prefix}${i}`];
+                const known = done || (saved && saved.valid === 'true');
+                return known
+                    ? `<span class="text-amber-950">${answer}${unit}</span>`
+                    : '<span class="text-slate-400">?</span>';
+            };
+            const rows = [
+                { label: '유소년 인구(%)', prefix: 's2-ypct-', key: 'yPct', unit: '%' },
+                { label: '부양 인구(%)', prefix: 's2-wpct-', key: 'wPct', unit: '%' },
+                { label: '노년 인구(%)', prefix: 's2-opct-', key: 'oPct', unit: '%' },
+                { label: '전체 인구(%)', prefix: 's2-totpct-', key: 'totPct', unit: '%', strong: true },
+                { label: '총부양비', prefix: 's2-totdep-', key: 'totDep', unit: '' },
+                { label: '노령화 지수', prefix: 's2-aging-', key: 'aging', unit: '' }
+            ];
+            const sep = i => (i === 1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200');
+            return `
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 mb-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="font-extrabold text-amber-950 text-sm sm:text-base">📊 [Stage 2에서 완성한 표] 구분 (비율)</span>
+                    ${done
+                        ? '<span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-300">✅ Stage 2 완성</span>'
+                        : `<button onclick="switchStage(2)" class="bg-yellow-100 hover:bg-yellow-200 text-amber-900 text-xs font-extrabold px-2.5 py-1 rounded-full border border-amber-400">⏳ Stage 2를 완성하면 표가 모두 채워져요 · Stage 2로 가기</button>`}
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-center border-collapse min-w-[480px] text-xs sm:text-sm font-bold border-2 border-amber-300">
+                        <thead>
+                            <tr class="bg-yellow-200 text-amber-950 border-b border-amber-300">
+                                <th rowspan="2" class="p-2 border-r-2 border-amber-400 w-32">구분 (비율)</th>
+                                <th colspan="2" class="p-1.5 border-r-2 border-amber-400">t년</th>
+                                <th colspan="2" class="p-1.5">t+50년</th>
+                            </tr>
+                            <tr class="bg-yellow-100 text-amber-950 border-b-2 border-amber-300">
+                                <th class="p-1.5 border-r border-amber-200">갑국</th>
+                                <th class="p-1.5 border-r-2 border-amber-400">을국</th>
+                                <th class="p-1.5 border-r border-amber-200">갑국</th>
+                                <th class="p-1.5">을국</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-amber-100">
+                            ${rows.map(r => `
+                            <tr class="${r.strong ? 'bg-amber-50' : ''}">
+                                <td class="p-2 border-r-2 border-amber-400 bg-amber-50/70">${r.label}</td>
+                                ${cols.map((c, i) => `<td class="p-2 ${sep(i)}">${cell(r.prefix, i, c[r.key], r.unit)}</td>`).join('')}
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-[11px] sm:text-xs text-amber-800 font-medium mt-2">
+                    👉 아래 인구수(명) 표는 <strong>전체 인구(명) × 위 표의 비율(%) ÷ 100</strong>으로 채워요. 예) t+50년 을국: 50명 × 10% = 5명
+                </p>
+            </div>`;
+        }
+
+        // --- STAGE 3: 2쪽 중단 수특 [26022-0224] 4번 (구분(수) 표 완성 & 선지 ①~⑤) ---
+        function renderStage3() {
+            const d = state.s3;
+            const cols = d.cols;
+
+            const gaIncRate = Math.round(((cols[2].oPop - cols[0].oPop) / cols[0].oPop) * 100);
+            const eulIncRate = Number((((cols[3].oPop - cols[1].oPop) / cols[1].oPop) * 100).toFixed(1));
+
+            const oxItems = [
+                {
+                    idx: 0,
+                    text: '① t년에 을국의 노년 인구는 부양 인구의 2배 이상이다.',
+                    ans: false,
+                    hint: `t년 을국의 노년 인구는 <strong>${cols[1].oPop}명</strong>이고, 부양 인구는 <strong>${cols[1].wPop}명</strong>이야! 부양 인구의 2배 이상이 아니므로 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 1,
+                    text: '② t년 갑국의 노년 인구가 t+50년 을국의 유소년 인구보다 적다.',
+                    ans: false,
+                    hint: `인구수 표를 확인해 봐! t년 갑국의 노년 인구는 <strong>${cols[0].oPop}명</strong>이고, t+50년 을국의 유소년 인구는 <strong>${cols[3].yPop}명</strong>이야! 적다는 설명은 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 2,
+                    text: '③ t년 대비 t+50년에 갑국의 부양 인구는 감소하였다.',
+                    ans: false,
+                    hint: `실제 부양 인구는 <strong>${cols[0].wPop}명 → ${cols[2].wPop}명으로 증가</strong>했어! (<strong>거짓 X</strong>)`
+                },
+                {
+                    idx: 3,
+                    text: '④ t년 대비 t+50년에 노년 인구 증가율은 갑국보다 을국이 높다.',
+                    ans: false,
+                    hint: `• <strong>갑국 노년 인구 증가율</strong> = ${gaIncRate}% 증가<br>• <strong>을국 노년 인구 증가율</strong> = ${eulIncRate}% (오히려 감소!)<br>따라서 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 4,
+                    text: '⑤ t년 대비 t+50년에 갑국과 을국의 노령화 지수는 모두 증가하였다.',
+                    ans: true,
+                    hint: `정답! 노령화 지수가 갑국(${cols[0].aging} → ${cols[2].aging})과 을국(${cols[1].aging} → ${cols[3].aging}) 모두 증가했으므로 <strong>참(O)</strong>이야!`
+                }
+            ];
+
+            OX_REGISTRY.s3 = oxItems;
+            return `
+            ${renderStageHeader(3, '수특 [26022-0224] 4번 실전 완결! 전체 인구 배수 단서를 적용해 실제 인구수(명) 표를 채우고 선지를 분석하세요.')}
+
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-xs sm:text-sm leading-relaxed text-amber-950 space-y-1">
+                <span class="inline-block bg-amber-600 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full mb-1">인구 규모 조건</span>
+                <p>“단, <strong>t년에 갑국과 을국의 전체 인구는 동일</strong>하며, 갑국의 전체 인구는 <strong>t년 대비 t+50년에 2배로 증가</strong>하였고, <strong>t+50년에 갑국 전체 인구는 을국 전체 인구의 4배</strong>이다.”</p>
+                <p class="text-amber-800 font-bold">👉 t년 갑국을 <strong>100명</strong>으로 놓으면: t년 을국 100명, t+50년 갑국 200명, t+50년 을국 50명 (200명으로 놓아도 돼요: 200·200·400·100)</p>
+            </div>
+
+            ${renderS2ReferenceTable(cols)}
+
+            ${renderInputGuideBanner('<strong>Tip:</strong> 전체 인구를 <strong>100명 : 100명 : 200명 : 50명</strong>(또는 200:200:400:100)으로 놓고 각 비율(%)을 곱해 보세요!')}
+
+            <!-- 구분(수) 표 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[540px] text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400 w-32">구분 (수)</th>
+                            <th colspan="2" class="p-2 border-r-2 border-amber-400">t년</th>
+                            <th colspan="2" class="p-2">t+50년</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2 border-r-2 border-amber-400">을국</th>
+                            <th class="p-2 border-r border-amber-300">갑국</th>
+                            <th class="p-2">을국</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 인구(명)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s3-ypop-${i}`, c.yPop, '명', `${c.name} 유소년 인구(명)`, `전체 인구(${c.totPop}명) × 유소년 비율(${c.yPct}%) = <strong>${c.yPop}명</strong>이야!`, '?', 'w-16 sm:w-20', c.altYPop)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">부양 인구(명)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s3-wpop-${i}`, c.wPop, '명', `${c.name} 부양 인구(명)`, `전체 인구(${c.totPop}명) × 부양 인구 비율(${c.wPct}%) = <strong>${c.wPop}명</strong>이야!`, '?', 'w-16 sm:w-20', c.altWPop)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 인구(명)</td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s3-opop-${i}`, c.oPop, '명', `${c.name} 노년 인구(명)`, `전체 인구(${c.totPop}명) × 노년 비율(${c.oPct}%) = <strong>${c.oPop}명</strong>이야!`, '?', 'w-16 sm:w-20', c.altOPop)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-amber-100/70">
+                            <td class="p-2.5 border-r-2 border-amber-400 font-extrabold">전체 인구(명)<br><span class="text-[11px] font-normal text-amber-800">(100:100:200:50)</span></td>
+                            ${cols.map((c, i) => `
+                                <td class="p-2 ${i===1 ? 'border-r-2 border-amber-400' : 'border-r border-amber-200'}">
+                                    ${makeNumInput(`s3-totpop-${i}`, c.totPop, '명', `${c.name} 전체 인구(명)`, `단서에 따라 t년 갑국=100명, t년 을국=100명, t+50년 갑국=200명, t+50년 을국=50명이야!`, '?', 'w-16 sm:w-20', c.altTotPop)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 선지 ①~⑤ OX 판별 -->
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-1">🎯 선지 ①~⑤ 진위(O/X) 판별</p>
+                ${oxItems.map(item => {
+                    const cur = d.oxChecks[item.idx];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkOx('s3', ${item.idx}, true)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkOx('s3', ${item.idx}, false)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s3-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage3()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 3 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage3() {
+            const prefixes = ['s3-ypop-', 's3-wpop-', 's3-opop-', 's3-totpop-'];
+            for (const p of prefixes) {
+                for (let i = 0; i < 4; i++) {
+                    const id = `${p}${i}`;
+                    const el = document.getElementById(id);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = id;
+                        showGoblinModal('빈칸 미입력', '실제 인구수(명) 표의 16칸을 모두 채워 넣어라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+            // [수정] 100명 기준과 200명 기준을 한 표 안에서 섞어 쓰면 정답 처리되던 문제
+            const scaleUsed = new Set();
+            for (const p of prefixes) {
+                for (let i = 0; i < 4; i++) {
+                    const el = document.getElementById(`${p}${i}`);
+                    const v = parseFractionOrNumber(el.value);
+                    scaleUsed.add(Math.abs(v - Number(el.dataset.answer)) < 1e-9 ? 100 : 200);
+                }
+            }
+            if (scaleUsed.size > 1) {
+                showGoblinModal('기준 인구 섞어 쓰기', '한 표 안에서는 <strong>같은 기준</strong>으로 맞춰야 해! t년 갑국을 100명으로 놓았으면 모든 칸을 100:100:200:50 기준으로, 200명으로 놓았으면 모든 칸을 200:200:400:100 기준으로 채워 봐!');
+                return;
+            }
+            if (![0, 1, 2, 3, 4].every(i => state.s3.oxChecks[i] !== null)) {
+                showGoblinModal('선지 OX 미완료', '선지 ①~⑤의 O/X를 모두 완료해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(3);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s3-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 3 클리어! 정답은 ⑤번입니다! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">수특 4번 고난도 문항을 완벽히 정복했습니다! 이제 Stage 4에서 2022년 10월 학평 10번(지역별 부양비) 표를 채워보세요!</p>
+                ${nextStageButton(3)}
+            </div>`;
+        }
+
+        // --- STAGE 4: 2쪽 하단 (2022년 10월 학평 10번 - A,B,C 지역별 비율(%) 표 완성) ---
+        function renderStage4() {
+            const d = state.s4;
+            const regs = d.regions;
+
+            return `
+            ${renderStageHeader(4, '2022년 10월 학평 10번(고3) 원본! 표는 갑국의 지역별 총부양비와 노년 부양비를 나타낸다.')}
+            ${renderInputGuideBanner('<strong>Tip:</strong> 유소년 부양비 = <strong>총부양비 - 노년 부양비</strong>를 먼저 구한 뒤 비율(%)을 채우세요!')}
+
+            <!-- 학평 원본 표 카드 -->
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-xs sm:text-sm text-amber-950 space-y-3">
+                <div class="font-extrabold text-orange-900">📋 [학평 원본 문제 표] 갑국의 지역별 총부양비와 노년 부양비</div>
+                <table class="w-full text-center border-collapse bg-white rounded-xl overflow-hidden border-2 border-amber-400 text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-400 w-36">구분</th>
+                            <th class="p-2 border-r border-amber-300">A 지역</th>
+                            <th class="p-2 border-r border-amber-300">B 지역</th>
+                            <th class="p-2">C 지역</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200">
+                        <tr>
+                            <td class="p-2 border-r border-amber-300 bg-amber-50">총부양비</td>
+                            <td class="p-2 border-r border-amber-200 text-base font-extrabold">${regs[0].totDep}</td>
+                            <td class="p-2 border-r border-amber-200 text-base font-extrabold">${regs[1].totDep}</td>
+                            <td class="p-2 text-base font-extrabold">${regs[2].totDep}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 border-r border-amber-300 bg-amber-50">노년 부양비</td>
+                            <td class="p-2 border-r border-amber-200 text-base font-extrabold">${regs[0].oDep}</td>
+                            <td class="p-2 border-r border-amber-200 text-base font-extrabold">${regs[1].oDep}</td>
+                            <td class="p-2 text-base font-extrabold">${regs[2].oDep}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-xs text-amber-900 font-medium">
+                    * 총부양비 = {(유소년 인구 + 노년 인구) / 15~64세 인구} × 100, 유소년 부양비 = (유소년 인구 / 15~64세 인구) × 100, 노년 부양비 = (노년 인구 / 15~64세 인구) × 100
+                </p>
+            </div>
+
+            <!-- 학생이 채우는 비율(%) 표 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[460px] text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400 w-36">구분 (비율)</th>
+                            <th colspan="3" class="p-2">갑국</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">A 지역</th>
+                            <th class="p-2 border-r border-amber-300">B 지역</th>
+                            <th class="p-2">C 지역</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 인구(%)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s4-ypct-${i}`, r.yPct, '%', `${r.name} 유소년 인구(%)`, `${r.name}의 유소년 비율(%) = <strong>{${r.yDep} ÷ (100 + ${r.totDep})} × 100 = ${r.yPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">부양 인구(%)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s4-wpct-${i}`, r.wPct, '%', `${r.name} 부양 인구(%)`, `${r.name}의 부양 인구 비율(%) = <strong>{100 ÷ (100 + ${r.totDep})} × 100 = ${r.wPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 인구(%)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s4-opct-${i}`, r.oPct, '%', `${r.name} 노년 인구(%)`, `${r.name}의 노년 인구 비율(%) = <strong>{${r.oDep} ÷ (100 + ${r.totDep})} × 100 = ${r.oPct}%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-amber-100/60">
+                            <td class="p-2.5 border-r-2 border-amber-400 font-extrabold">전체 인구(%)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s4-totpct-${i}`, 100, '%', `${r.name} 전체 인구(%)`, `연령별 비율 합계는 항상 <strong>100%</strong>야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="border-t-2 border-amber-400">
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 부양비</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s4-ydep-${i}`, r.yDep, '', `${r.name} 유소년 부양비`, `총부양비(${r.totDep}) - 노년부양비(${r.oDep}) = <strong>${r.yDep}</strong>이야!`)}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-yellow-50 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-100">노년 부양비 (제시)</td>
+                            ${regs.map(r => `<td class="p-2.5 border-r border-amber-200 text-base text-amber-950">${r.oDep}</td>`).join('')}
+                        </tr>
+                        <tr class="bg-yellow-50 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-100">총부양비 (제시)</td>
+                            ${regs.map(r => `<td class="p-2.5 border-r border-amber-200 text-base text-amber-950">${r.totDep}</td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="s4-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage4()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 4 지역별 비율(%) 표 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage4() {
+            const prefixes = ['s4-ypct-', 's4-wpct-', 's4-opct-', 's4-totpct-', 's4-ydep-'];
+            for (const p of prefixes) {
+                for (let i = 0; i < 3; i++) {
+                    const id = `${p}${i}`;
+                    const el = document.getElementById(id);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = id;
+                        showGoblinModal('빈칸 미입력', 'A~C 지역의 유소년 부양비와 연령별 인구 비율(%) 빈칸을 모두 채워 넣어라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+
+            const reward = grantStageClear(4);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s4-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 4 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">A~C 지역의 연령별 인구 비율(%)을 완벽히 구했습니다! 이제 마지막 표(지역별 인구수 400:200:100 결합)와 선지를 정복하러 가볼까요?</p>
+                ${nextStageButton(4)}
+            </div>`;
+        }
+
+        // --- STAGE 5: 3쪽 2022년 10월 학평 10번 (구분(수) 표 완성 & 선지 ①~⑤) ---
+        function renderStage5() {
+            const d = state.s5;
+            const regs = d.regions;
+            const nat = d.totalNation;
+
+            const oxItems = [
+                {
+                    idx: 0,
+                    text: '① 갑국의 총부양비는 300이다.',
+                    ans: false,
+                    hint: `갑국 전체의 부양 인구는 <strong>${nat.wPop}명</strong>이고 유소년+노년은 <strong>${nat.yPop + nat.oPop}명</strong>이므로 총부양비는 <strong>${nat.totDep}</strong>이야! (300이 아니므로 <strong>거짓 X</strong>)`
+                },
+                {
+                    idx: 1,
+                    text: '② 15~64세 인구는 B 지역이 C 지역보다 적다.',
+                    ans: false,
+                    hint: `15~64세(부양 인구)는 B 지역(<strong>${regs[1].wPop}명</strong>)이 C 지역(<strong>${regs[2].wPop}명</strong>)의 2배이므로 적다는 설명은 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 2,
+                    text: '③ 유소년 부양비가 가장 낮은 지역은 C 지역이다.',
+                    ans: false,
+                    hint: `유소년 부양비는 A(${regs[0].yDep}), B(${regs[1].yDep}), C(${regs[2].yDep})로 <strong>B 지역(${regs[1].yDep})이 가장 낮아!</strong> (<strong>거짓 X</strong>)`
+                },
+                {
+                    idx: 3,
+                    text: '④ 지역별 인구 중 65세 이상 인구가 차지하는 비율은 B 지역이 가장 높다.',
+                    ans: true,
+                    hint: `정답! 65세 이상(노년) 비율은 A(${regs[0].oPct}%), B(${regs[1].oPct}%), C(${regs[2].oPct}%)로 <strong>B 지역(${regs[1].oPct}%)이 가장 높아!</strong> (<strong>참 O</strong>)`
+                },
+                {
+                    idx: 4,
+                    text: '⑤ A~C 지역 모두 지역별 인구 중 15~64세 인구가 차지하는 비율이 50%를 넘는다.',
+                    ans: false,
+                    hint: `부양 인구 비율이 50%를 넘으려면 총부양비가 100 미만이어야 해! A, B, C 모두 50% 이하이므로 <strong>거짓(X)</strong>이야!`
+                }
+            ];
+
+            OX_REGISTRY.s5 = oxItems;
+            return `
+            ${renderStageHeader(5, '[2022년 10월 학평 10번] 완결! 지역별 인구 배수(A=400명, B=200명, C=100명)로 인구수 표와 선지를 정복하세요.')}
+
+            <!-- 학평 3쪽 원본 문제 카드 -->
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-xs sm:text-sm text-amber-950 space-y-2">
+                <div class="font-extrabold text-orange-900">📋 [학평 원본 문제] 2022 실시 10월 학평 10번 (고3)</div>
+                <p class="leading-relaxed">
+                    표는 갑국의 지역별 총부양비와 노년 부양비를 나타낸 것이다. 이에 대한 설명으로 옳은 것은?<br>
+                    <strong>(단, 갑국은 A~C 지역만으로 구성되며, A 지역의 인구는 B 지역의 2배이고 B 지역의 인구는 C 지역의 2배이다.)</strong>
+                </p>
+                <div class="overflow-x-auto max-w-sm mx-auto pt-1">
+                    <table class="w-full text-center border-2 border-amber-500 bg-white rounded-xl text-xs font-bold">
+                        <thead>
+                            <tr class="bg-yellow-200 border-b-2 border-amber-400">
+                                <th class="p-2 border-r border-amber-300">구분</th>
+                                <th class="p-2 border-r border-amber-300">A 지역</th>
+                                <th class="p-2 border-r border-amber-300">B 지역</th>
+                                <th class="p-2">C 지역</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border-r border-amber-300 bg-amber-50">총부양비</td>
+                                <td class="p-2 border-r border-amber-200">400</td>
+                                <td class="p-2 border-r border-amber-200">150</td>
+                                <td class="p-2">150</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border-r border-amber-300 bg-amber-50">노년부양비</td>
+                                <td class="p-2 border-r border-amber-200">50</td>
+                                <td class="p-2 border-r border-amber-200">100</td>
+                                <td class="p-2">75</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            ${renderInputGuideBanner('<strong>Tip:</strong> C 지역 인구를 100명으로 놓으면 B 지역은 200명, A 지역은 400명이 되어 인구수(명) 표를 쉽게 채울 수 있습니다!')}
+
+            <!-- 구분(수) 표 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[540px] text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400 w-32">구분 (인구수)</th>
+                            <th colspan="3" class="p-2 border-r-2 border-amber-400">갑국 지역별</th>
+                            <th rowspan="2" class="p-2.5 bg-amber-200">갑국 (합계)</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">A 지역</th>
+                            <th class="p-2 border-r border-amber-300">B 지역</th>
+                            <th class="p-2 border-r-2 border-amber-400">C 지역</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 인구(명)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s5-ypop-${i}`, r.yPop, '명', `${r.name} 유소년 인구(명)`, `${r.name} 전체 인구(${r.pop}명) × 유소년 비율(${r.yPct}%) = <strong>${r.yPop}명</strong>이야!`)}
+                                </td>
+                            `).join('')}
+                            <td class="p-2 bg-amber-50/70">
+                                ${makeNumInput('s5-ypop-tot', nat.yPop, '명', '갑국 전체 유소년 인구(명)', `A(${regs[0].yPop}) + B(${regs[1].yPop}) + C(${regs[2].yPop}) = <strong>${nat.yPop}명</strong>이야!`)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">부양 인구(명)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s5-wpop-${i}`, r.wPop, '명', `${r.name} 부양 인구(명)`, `${r.name} 전체 인구(${r.pop}명) × 부양 인구 비율(${r.wPct}%) = <strong>${r.wPop}명</strong>이야!`)}
+                                </td>
+                            `).join('')}
+                            <td class="p-2 bg-amber-50/70">
+                                ${makeNumInput('s5-wpop-tot', nat.wPop, '명', '갑국 전체 부양 인구(명)', `A(${regs[0].wPop}) + B(${regs[1].wPop}) + C(${regs[2].wPop}) = <strong>${nat.wPop}명</strong>이야!`)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 인구(명)</td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s5-opop-${i}`, r.oPop, '명', `${r.name} 노년 인구(명)`, `${r.name} 전체 인구(${r.pop}명) × 노년 비율(${r.oPct}%) = <strong>${r.oPop}명</strong>이야!`)}
+                                </td>
+                            `).join('')}
+                            <td class="p-2 bg-amber-50/70">
+                                ${makeNumInput('s5-opop-tot', nat.oPop, '명', '갑국 전체 노년 인구(명)', `A(${regs[0].oPop}) + B(${regs[1].oPop}) + C(${regs[2].oPop}) = <strong>${nat.oPop}명</strong>이야!`)}
+                            </td>
+                        </tr>
+                        <tr class="bg-amber-100/70">
+                            <td class="p-2.5 border-r-2 border-amber-400 font-extrabold">전체 인구(명)<br><span class="text-[11px] font-normal text-amber-800">(4 : 2 : 1 기준)</span></td>
+                            ${regs.map((r, i) => `
+                                <td class="p-2 border-r border-amber-200">
+                                    ${makeNumInput(`s5-totpop-${i}`, r.pop, '명', `${r.name} 전체 인구(명)`, `C지역=100명 기준일 때 B지역은 200명, A지역은 400명이야!`)}
+                                </td>
+                            `).join('')}
+                            <td class="p-2 bg-amber-200/70">
+                                ${makeNumInput('s5-totpop-tot', nat.pop, '명', '갑국 전체 인구(명)', `A(400) + B(200) + C(100) = <strong>700명</strong>이야!`)}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 선지 ①~⑤ OX 판별 -->
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-1">🎯 선지 ①~⑤ 진위(O/X) 판별</p>
+                ${oxItems.map(item => {
+                    const cur = d.oxChecks[item.idx];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkOx('s5', ${item.idx}, true)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkOx('s5', ${item.idx}, false)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s5-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage5()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    전 스테이지 마스터 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage5() {
+            const prefixes = ['s5-ypop-', 's5-wpop-', 's5-opop-', 's5-totpop-'];
+            for (const p of prefixes) {
+                for (const suffix of ['0', '1', '2', 'tot']) {
+                    const id = `${p}${suffix}`;
+                    const el = document.getElementById(id);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = id;
+                        showGoblinModal('빈칸 미입력', '인구수(명) 표의 모든 빈칸을 채워 넣어라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+            if (![0, 1, 2, 3, 4].every(i => state.s5.oxChecks[i] !== null)) {
+                showGoblinModal('선지 OX 미완료', '선지 ①~⑤의 O/X를 모두 완료해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(5);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s5-result').innerHTML = `
+            <div class="bg-gradient-to-r from-yellow-100 via-emerald-50 to-yellow-100 border-[3px] border-emerald-500 rounded-2xl p-5 text-center shadow">
+                <p class="font-game text-2xl text-emerald-800">👑 은지몬 인구 부양비 전 스테이지 완전 정복! 정답은 ④번입니다! ${xpMsg}</p>
+                <p class="text-sm text-emerald-900 mt-1 font-medium">
+                    축하합니다! 수능특강과 고3 10월 학평 킬러 문항까지 모두 마스터했습니다!
+                </p>
+                <button onclick="openCertModal()" class="mt-4 bg-amber-600 hover:bg-amber-700 text-white font-game text-base px-6 py-2.5 rounded-xl border-2 border-amber-800 shadow">
+                    🎓 선생님 제출용 학습 인증서 열기
+                </button>
+            </div>`;
+        }
+
+        // ==========================================
+        // 8-2. [추가] 🪜 디딤돌 스테이지 (기초 단계, 🎲 랜덤 연습 가능) & 공통 도우미
+        // ==========================================
+        // 선지 O/X 목록은 화면에 그릴 때 등록하고, 버튼에는 번호만 넘긴다.
+        const OX_REGISTRY = {};
+
+        function checkOx(stageKey, idx, userVal) {
+            const items = OX_REGISTRY[stageKey] || [];
+            const item = items.find(it => it.idx === idx);
+            if (!item) return;
+            if (userVal === item.ans) {
+                state[stageKey].oxChecks[idx] = userVal;
+                playSound('correct');
+                renderCurrentStage();
+                saveProgress();
+            } else {
+                showGoblinModal(`${item.label || `선지 ${idx + 1}번`} 분석 오류`, item.hint);
+            }
+        }
+
+        function renderOxBox(stageKey, items, title) {
+            OX_REGISTRY[stageKey] = items;
+            const d = state[stageKey];
+            return `
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-1">${title}</p>
+                ${items.map(item => {
+                    const cur = d.oxChecks[item.idx];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkOx('${stageKey}', ${item.idx}, true)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkOx('${stageKey}', ${item.idx}, false)"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
+
+        function stepRow(no, labelHtml, inputHtml) {
+            return `
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-yellow-50/70 border border-amber-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm">
+                <span class="font-bold text-amber-950 leading-snug"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-[11px] font-extrabold mr-1.5">${no}</span>${labelHtml}</span>
+                ${inputHtml}
+            </div>`;
+        }
+
+        function stepCard(title, bodyHtml, tone = 'white') {
+            const toneCls = tone === 'amber' ? 'bg-amber-50 border-amber-400' : 'bg-white border-amber-400';
+            return `
+            <div class="${toneCls} border-2 rounded-2xl p-4 space-y-2.5 mb-4">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base">${title}</p>
+                ${bodyHtml}
+            </div>`;
+        }
+
+        function stepIntro(text) {
+            return `
+            <div class="bg-sky-50 border-2 border-sky-300 rounded-2xl p-3 mb-4 text-xs sm:text-sm text-sky-900 font-bold leading-relaxed">
+                <span class="inline-block bg-sky-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full mr-1">🪜 디딤돌</span>
+                ${text}
+            </div>`;
+        }
+
+        // 디딤돌 전용: 🎲 버튼과 '기본 문제' 버튼
+        function stepRandomBar(stageId) {
+            const d = state[`s${stageId}`];
+            return `
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                ${d.isRandom
+                    ? '<span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-2.5 py-1 rounded-full border border-purple-300">🎲 랜덤 연습 문제</span>'
+                    : '<span class="bg-yellow-100 text-amber-800 text-xs font-extrabold px-2.5 py-1 rounded-full border border-amber-300">📄 기본 문제</span>'}
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="rerollStep(${stageId}, true)" class="bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 text-amber-950 font-extrabold text-xs sm:text-sm px-3.5 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition">
+                        🎲 새 숫자로 연습하기
+                    </button>
+                    ${d.isRandom ? `
+                    <button onclick="rerollStep(${stageId}, false)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-300 transition">
+                        기본 문제로 돌아가기
+                    </button>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function rerollStep(stageId, isRandom) {
+            clearStageInputs(`s${stageId}-`);
+            Object.keys(state.wrongCounts).forEach(k => { if (k.startsWith(`s${stageId}-`)) delete state.wrongCounts[k]; });
+            state[`s${stageId}`] = STEP_CREATORS[stageId](isRandom);
+            if (isRandom) playSound('correct');
+            renderCurrentStage();
+            saveProgress();
+        }
+
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        function randStep(min, max, step = 1) {
+            const n = Math.floor((max - min) / step) + 1;
+            return min + Math.floor(Math.random() * n) * step;
+        }
+        function baseStepData(isRandom, oxCount) {
+            const oxChecks = {};
+            for (let i = 0; i < oxCount; i++) oxChecks[i] = null;
+            return { isRandom, rewardClaimed: false, oxChecks };
+        }
+
+        // --- 데이터: 디딤돌 1 (인구수 → 부양비 / 부양비 → 부양 인구 100 놓기) ---
+        function createStep6Data(isRandom = false) {
+            const d = baseStepData(isRandom, 2);
+            let y, w, o, by, bo;
+            if (!isRandom) {
+                y = 20; w = 50; o = 30; by = 30; bo = 20;
+            } else {
+                // 부양비·노령화 지수가 모두 정수로 떨어지는 인구만 사용
+                do {
+                    w = pick([20, 40, 50, 60, 80, 100, 200]);
+                    y = randStep(5, w, 5);
+                    o = randStep(5, w, 5);
+                } while (y === o || (y * 100) % w || (o * 100) % w || (o * 100) % y || o * 100 / y > 400);
+                do { by = randStep(10, 60, 5); bo = randStep(10, 60, 5); } while (by === bo);
+            }
+            Object.assign(d, {
+                y, w, o, by, bo,
+                ydep: y * 100 / w, odep: o * 100 / w, aging: o * 100 / y
+            });
+            d.tdep = d.ydep + d.odep;
+            return d;
+        }
+
+        // --- 데이터: 디딤돌 2 (부양비 → 비율 %) ---
+        function createStep7Data(isRandom = false) {
+            const d = baseStepData(isRandom, 2);
+            let cases;
+            if (!isRandom) {
+                cases = [
+                    { yDep: 70, oDep: 30, giveTot: false },
+                    { yDep: 15, oDep: 10, giveTot: false },
+                    { yDep: 200, oDep: 100, giveTot: true }
+                ];
+            } else {
+                // 전체 인구(100 + 총부양비)가 이 값이면 부양 인구 비율이 정수(%)로 떨어짐
+                const totals = [125, 200, 250, 400, 500].sort(() => Math.random() - 0.5).slice(0, 3);
+                cases = totals.map((all, i) => {
+                    const tot = all - 100;
+                    let yDep;
+                    do { yDep = randStep(5, tot - 5, 5); } while ((yDep * 100) % all || ((tot - yDep) * 100) % all);
+                    return { yDep, oDep: tot - yDep, giveTot: i === 2 };
+                });
+            }
+            const names = ['가국', '나국', '다국'];
+            d.cases = cases.map((c, i) => {
+                const all = 100 + c.yDep + c.oDep;
+                return {
+                    key: 'abc'[i], name: names[i], yDep: c.yDep, oDep: c.oDep, totDep: c.yDep + c.oDep, giveTot: c.giveTot,
+                    all, wPct: 10000 / all, yPct: c.yDep * 100 / all, oPct: c.oDep * 100 / all
+                };
+            });
+            return d;
+        }
+
+        // --- 데이터: 디딤돌 3 (비율 → 인구수, 배수 조건, 비율과 수의 차이) ---
+        function createStep8Data(isRandom = false) {
+            const d = baseStepData(isRandom, 2);
+            if (!isRandom) {
+                Object.assign(d, {
+                    tot: 200, yp: 30, wp: 50, op: 20,
+                    grow: 3, ratio: 6,
+                    r1: 3, r2: 2,
+                    gTot: 500, gPct: 10, eTot: 100, ePct: 30
+                });
+            } else {
+                d.tot = pick([100, 200, 300, 400, 500]);
+                do {
+                    d.yp = randStep(10, 50, 5); d.op = randStep(10, 50, 5);
+                    d.wp = 100 - d.yp - d.op;
+                } while (d.wp < 20);
+                do { d.grow = randStep(2, 4); d.ratio = pick([2, 3, 4, 5, 6, 8]); } while ((100 * d.grow) % d.ratio || d.ratio === d.grow);
+                d.r1 = randStep(2, 4); d.r2 = randStep(2, 4);
+                do {
+                    d.gTot = pick([400, 500, 600, 800]); d.gPct = pick([10, 15, 20]);
+                    d.eTot = pick([100, 200]); d.ePct = pick([25, 30, 40]);
+                } while (!(d.gPct < d.ePct && d.gTot * d.gPct > d.eTot * d.ePct));
+            }
+            d.yNum = d.tot * d.yp / 100; d.wNum = d.tot * d.wp / 100; d.oNum = d.tot * d.op / 100;
+            d.m2 = 100 * d.grow; d.m3 = d.m2 / d.ratio;
+            d.bReg = 100 * d.r2; d.aReg = d.bReg * d.r1;
+            d.gNum = d.gTot * d.gPct / 100; d.eNum = d.eTot * d.ePct / 100;
+            return d;
+        }
+
+        const STEP_CREATORS = { 6: createStep6Data, 7: createStep7Data, 8: createStep8Data };
+
+        // 공통 채점: 빈칸 → 각 칸 정답 → O/X 모두 완료 → 클리어
+        function verifyStepStage(stageId, msg) {
+            const inputs = Array.from(document.querySelectorAll('#stage-container input[data-answer]'));
+            for (const el of inputs) {
+                if (el.value.trim() === '') {
+                    state.lastFocusedInputId = el.id;
+                    showGoblinModal('빈칸 미입력', '디딤돌의 빈칸을 모두 채워 넣어라! 한 칸씩 차근차근!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            const d = state[`s${stageId}`];
+            if (!Object.values(d.oxChecks).every(v => v !== null)) {
+                showGoblinModal('O/X 미완료', '아래 O/X 문제도 모두 판별해 보아라!');
+                return;
+            }
+            const reward = grantStageClear(stageId);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료 · 🎲 새 숫자로 풀면 +20 XP)' : `(+${reward.gainedXp} XP 획득)`;
+            const st = STAGE_LIST.find(s => s.id === stageId);
+            document.getElementById(`s${stageId}-result`).innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 🪜 ${st.short} 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">${msg}</p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button onclick="rerollStep(${stageId}, true)" class="mt-3 bg-white hover:bg-yellow-50 text-amber-900 font-bold px-4 py-2 rounded-xl text-sm border-2 border-amber-400 shadow-sm">🎲 새 숫자로 한 번 더</button>
+                    ${nextStageButton(stageId)}
+                </div>
+            </div>`;
+        }
+
+        // --- 🪜 디딤돌 1: 인구수로 부양비 구하기 ---
+        function renderStage6() {
+            const d = state.s6;
+            const ox = [
+                {
+                    idx: 0, label: 'O/X ①',
+                    text: '① 총부양비가 100이면 부양 인구(15~64세)와 피부양 인구(유소년+노년)의 수가 같다.',
+                    ans: true,
+                    hint: '총부양비 = {(유소년 + 노년) ÷ 부양 인구} × 100 이야. 이 값이 100이라는 건 <strong>(유소년 + 노년) = 부양 인구</strong>라는 뜻! (<strong>참 O</strong>)'
+                },
+                {
+                    idx: 1, label: 'O/X ②',
+                    text: '② 노년 부양비가 더 높은 나라는 노년 인구도 반드시 더 많다.',
+                    ans: false,
+                    hint: '부양비는 <strong>인구 수가 아니라 비율</strong>이야! 예) 부양 인구 10명·노년 5명이면 노년 부양비 50, 부양 인구 1000명·노년 100명이면 노년 부양비 10 → 노년 부양비는 앞이 높지만 노년 인구는 뒤가 훨씬 많아! (<strong>거짓 X</strong>)'
+                }
+            ];
+            return `
+            ${renderStageHeader(6, '인구 수가 주어지면 공식에 그대로 넣기만 하면 돼요! 분모가 무엇인지에 집중하세요.')}
+            ${stepIntro('Stage 1에 들어가기 전 몸풀기! <strong>부양비의 분모는 언제나 부양 인구(15~64세)</strong>, 노령화 지수만 분모가 <strong>유소년 인구</strong>예요.')}
+            ${stepRandomBar(6)}
+            ${renderInputGuideBanner()}
+
+            ${stepCard('📋 [자료] 은지몬 마을의 연령별 인구', `
+                <table class="w-full text-center border-collapse bg-white rounded-xl overflow-hidden border-2 border-amber-400 text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-400">유소년 인구<br><span class="text-[11px] font-medium">(0~14세)</span></th>
+                            <th class="p-2 border-r border-amber-400">부양 인구<br><span class="text-[11px] font-medium">(15~64세)</span></th>
+                            <th class="p-2 border-r border-amber-400">노년 인구<br><span class="text-[11px] font-medium">(65세 이상)</span></th>
+                            <th class="p-2">전체 인구</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-base sm:text-lg font-extrabold">
+                            <td class="p-2.5 border-r border-amber-200">${d.y}명</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.w}명</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.o}명</td>
+                            <td class="p-2.5">${d.y + d.w + d.o}명</td>
+                        </tr>
+                    </tbody>
+                </table>`, 'amber')}
+
+            ${stepCard('✏️ [Step A] 공식에 숫자를 넣어 계산해 보세요', `
+                ${stepRow(1, '부양비 공식의 <strong>분모</strong>가 되는 인구(15~64세)는?',
+                    makeNumInput('s6-den', d.w, '명', '부양비의 분모', '유소년·노년·총부양비의 분모는 모두 <strong>부양 인구(15~64세)</strong>야! 표에서 15~64세 칸을 찾아봐.'))}
+                ${stepRow(2, `유소년 부양비 = (유소년 ${d.y} ÷ 부양 ${d.w}) × 100 =`,
+                    makeNumInput('s6-ydep', d.ydep, '', '유소년 부양비', `${d.y} ÷ ${d.w} 를 먼저 계산하고, 여기에 100을 곱하면 돼!`))}
+                ${stepRow(3, `노년 부양비 = (노년 ${d.o} ÷ 부양 ${d.w}) × 100 =`,
+                    makeNumInput('s6-odep', d.odep, '', '노년 부양비', `${d.o} ÷ ${d.w} 를 먼저 계산하고, 여기에 100을 곱하면 돼!`))}
+                ${stepRow(4, '총부양비 = 유소년 부양비 + 노년 부양비 =',
+                    makeNumInput('s6-tdep', d.tdep, '', '총부양비', '앞에서 구한 유소년 부양비와 노년 부양비를 <strong>더하기</strong>만 하면 돼!'))}
+                ${stepRow(5, `노령화 지수 = (노년 ${d.o} ÷ <strong>유소년</strong> ${d.y}) × 100 =`,
+                    makeNumInput('s6-aging', d.aging, '', '노령화 지수', `노령화 지수만 분모가 <strong>유소년 인구</strong>야! ${d.o} ÷ ${d.y} 에 100을 곱해 봐.`))}
+            `)}
+
+            ${stepCard('🔄 [Step B] 거꾸로! 부양비만 주어지면 → 부양 인구를 100명으로 놓기', `
+                <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">어떤 나라의 <strong>유소년 부양비는 ${d.by}, 노년 부양비는 ${d.bo}</strong>이다. 부양 인구를 <strong>100명</strong>으로 놓으면?</p>
+                ${stepRow(1, '유소년 인구 =',
+                    makeNumInput('s6-ry', d.by, '명', '부양 인구 100명일 때 유소년 인구', '부양 인구가 100이면 유소년 인구는 <strong>유소년 부양비 숫자 그대로</strong>야!'))}
+                ${stepRow(2, '노년 인구 =',
+                    makeNumInput('s6-ro', d.bo, '명', '부양 인구 100명일 때 노년 인구', '부양 인구가 100이면 노년 인구는 <strong>노년 부양비 숫자 그대로</strong>야!'))}
+                ${stepRow(3, '전체 인구 = 유소년 + 부양(100) + 노년 =',
+                    makeNumInput('s6-rtot', d.by + 100 + d.bo, '명', '부양 인구 100명일 때 전체 인구', '세 인구를 모두 더해 봐! 즉 <strong>전체 인구 = 100 + 총부양비</strong>야.'))}
+            `)}
+
+            ${renderOxBox('s6', ox, '🎯 [Step C] 개념 O/X')}
+
+            <div id="s6-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage6()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    디딤돌 1 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage6() {
+            verifyStepStage(6, '부양비의 분모와 ‘부양 인구 = 100’ 놓기를 익혔어요! 이제 수특 04번에서 그대로 써 볼까요?');
+        }
+
+        // --- 🪜 디딤돌 2: 부양비로 인구 비율(%) 구하기 ---
+        function renderStage7() {
+            const cases = state.s7.cases;
+            const td = 'p-2 border-r border-amber-200';
+            const ox = [
+                {
+                    idx: 0, label: 'O/X ①',
+                    text: '① 부양 인구 비율이 50%를 넘으려면 총부양비가 100보다 작아야 한다.',
+                    ans: true,
+                    hint: '부양 인구 비율 = 100 ÷ (100 + 총부양비) × 100 이야. 총부양비가 100이면 딱 50%, 100보다 작으면 50%보다 커져! (<strong>참 O</strong>)'
+                },
+                {
+                    idx: 1, label: 'O/X ②',
+                    text: '② 총부양비가 같은 두 지역은 부양 인구 비율(%)도 같다.',
+                    ans: true,
+                    hint: '부양 인구 비율은 <strong>총부양비만으로</strong> 정해져! 유소년·노년 부양비가 달라도 총부양비가 같으면 부양 인구 비율은 같아. (학평 10번의 B·C 지역이 바로 이 경우!) (<strong>참 O</strong>)'
+                }
+            ];
+            return `
+            ${renderStageHeader(7, '‘부양 인구 = 100’ → ‘전체 = 100 + 총부양비’ → ‘비율 = 각 인구 ÷ 전체 × 100’ 세 단계만 기억하세요!')}
+            ${stepIntro('Stage 2의 비율(%) 표가 어렵다면 여기서 한 단계씩! 표의 <strong>위에서 아래로</strong> 순서대로 채우면 됩니다.')}
+            ${stepRandomBar(7)}
+            ${renderInputGuideBanner()}
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 text-xs sm:text-sm font-bold text-amber-950">
+                <div class="bg-yellow-100 border-2 border-amber-300 rounded-xl p-2.5 text-center">① 부양 인구 = <strong>100</strong></div>
+                <div class="bg-yellow-100 border-2 border-amber-300 rounded-xl p-2.5 text-center">② 전체 인구 = <strong>100 + 총부양비</strong></div>
+                <div class="bg-yellow-100 border-2 border-amber-300 rounded-xl p-2.5 text-center">③ 비율(%) = 인구 ÷ 전체 × 100</div>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[460px] text-xs sm:text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2.5 border-r-2 border-amber-400 w-40">구분</th>
+                            ${cases.map(c => `<th class="p-2 border-r border-amber-300">${c.name}${c.giveTot ? '<br><span class="text-[11px] font-medium">(학평형)</span>' : ''}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 부양비</td>
+                            ${cases.map(c => `<td class="${td}">${c.giveTot
+                                ? makeNumInput(`s7-ydep-${c.key}`, c.yDep, '', `${c.name} 유소년 부양비`, `총부양비만 주어지면 <strong>유소년 부양비 = 총부양비 - 노년 부양비</strong>야! ${c.totDep} - ${c.oDep}을 계산해 봐.`)
+                                : `<span class="text-base text-amber-950">${c.yDep}</span>`}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 부양비</td>
+                            ${cases.map(c => `<td class="${td} text-base text-amber-950">${c.oDep}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">총부양비</td>
+                            ${cases.map(c => `<td class="${td}">${c.giveTot
+                                ? `<span class="text-base text-amber-950">${c.totDep}</span>`
+                                : makeNumInput(`s7-tdep-${c.key}`, c.totDep, '', `${c.name} 총부양비`, `총부양비 = 유소년 부양비 + 노년 부양비 = ${c.yDep} + ${c.oDep}`)}</td>`).join('')}
+                        </tr>
+                        <tr class="bg-amber-100/70 border-t-2 border-amber-400">
+                            <td class="p-2.5 border-r-2 border-amber-400 font-extrabold">전체 인구<br><span class="text-[11px] font-normal text-amber-800">(부양 인구 = 100일 때)</span></td>
+                            ${cases.map(c => `<td class="${td}">${makeNumInput(`s7-all-${c.key}`, c.all, '', `${c.name} 전체 인구`, `부양 인구를 100으로 놓으면 <strong>전체 인구 = 100 + 총부양비</strong> = 100 + ${c.totDep}`)}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">부양 인구(%)</td>
+                            ${cases.map(c => `<td class="${td}">${makeNumInput(`s7-wpct-${c.key}`, c.wPct, '%', `${c.name} 부양 인구(%)`, `(부양 인구 100 ÷ 전체 ${c.all}) × 100 을 계산해 봐!`)}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">유소년 인구(%)</td>
+                            ${cases.map(c => `<td class="${td}">${makeNumInput(`s7-ypct-${c.key}`, c.yPct, '%', `${c.name} 유소년 인구(%)`, `부양 인구가 100이면 유소년 인구는 ${c.yDep}! (${c.yDep} ÷ 전체 ${c.all}) × 100 을 계산해 봐.`)}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">노년 인구(%)</td>
+                            ${cases.map(c => `<td class="${td}">${makeNumInput(`s7-opct-${c.key}`, c.oPct, '%', `${c.name} 노년 인구(%)`, `부양 인구가 100이면 노년 인구는 ${c.oDep}! (${c.oDep} ÷ 전체 ${c.all}) × 100 을 계산해 봐.`)}</td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-[11px] sm:text-xs text-amber-800 font-medium -mt-3 mb-4">✔ 검산: 각 나라의 부양 + 유소년 + 노년 비율을 더하면 100%가 되어야 해요!</p>
+
+            ${renderOxBox('s7', ox, '🎯 개념 O/X')}
+
+            <div id="s7-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage7()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    디딤돌 2 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage7() {
+            verifyStepStage(7, '전체 인구 = 100 + 총부양비만 기억하면 비율(%)은 금방이에요! 이제 수특 4번 비율 표에 도전!');
+        }
+
+        // --- 🪜 디딤돌 3: 비율(%)로 인구수 구하기 & 배수 조건 ---
+        function renderStage8() {
+            const d = state.s8;
+            const ox = [
+                {
+                    idx: 0, label: 'O/X ①',
+                    text: '① 노년 인구 비율이 더 높은 을 지역이 노년 인구 수도 더 많다.',
+                    ans: false,
+                    hint: `위에서 구한 값을 봐! 노년 인구 비율은 을 지역(${d.ePct}%)이 높지만, 노년 인구 수는 갑 지역(${d.gNum}명)이 을 지역(${d.eNum}명)보다 많아. <strong>전체 인구가 다르면 비율과 인구 수의 크기가 뒤바뀔 수 있어!</strong> (<strong>거짓 X</strong>)`
+                },
+                {
+                    // [수정] 원래 문장('반드시 곱해야 한다')은 Stage 1 선지 ③처럼 기준 인구가 같으면 바로 비교하는 경우와 어긋났음
+                    idx: 1, label: 'O/X ②',
+                    text: '② 두 지역의 전체 인구가 다르면, 비율(%)만 보고 인구 수를 비교할 수 없다.',
+                    ans: true,
+                    hint: '맞아! 인구 수 = 비율 × 전체 인구라서, 전체 인구가 다르면 반드시 곱해서 실제 수를 구해야 해. 반대로 Stage 1처럼 <strong>기준 인구(부양 인구)가 같다</strong>는 조건이 있으면 그 숫자 그대로 바로 비교할 수 있어. (<strong>참 O</strong>)'
+                }
+            ];
+            return `
+            ${renderStageHeader(8, '비율(%)에 전체 인구를 곱하면 인구 수! 배수 조건은 가장 작은 쪽을 100으로 놓으면 쉬워요.')}
+            ${stepIntro('Stage 3·5의 ‘인구수(명) 표’ 연습! 문제의 단서(배수 조건)로 <strong>전체 인구</strong>를 먼저 정하고, 비율(%)을 곱하세요.')}
+            ${stepRandomBar(8)}
+            ${renderInputGuideBanner()}
+
+            ${stepCard('✏️ [Step A] 비율(%) × 전체 인구 = 인구 수', `
+                <p class="text-xs sm:text-sm text-amber-900">어떤 나라의 전체 인구는 <strong>${d.tot}명</strong>이고, 유소년 ${d.yp}% · 부양 ${d.wp}% · 노년 ${d.op}%이다.</p>
+                ${stepRow(1, `유소년 인구 = ${d.tot} × ${d.yp} ÷ 100 =`, makeNumInput('s8-y', d.yNum, '명', '유소년 인구 수', `전체 인구 ${d.tot}명의 ${d.yp}%! ${d.tot} × ${d.yp / 100} 을 계산해 봐.`))}
+                ${stepRow(2, `부양 인구 = ${d.tot} × ${d.wp} ÷ 100 =`, makeNumInput('s8-w', d.wNum, '명', '부양 인구 수', `전체 인구 ${d.tot}명의 ${d.wp}%! ${d.tot} × ${d.wp / 100} 을 계산해 봐.`))}
+                ${stepRow(3, `노년 인구 = ${d.tot} × ${d.op} ÷ 100 =`, makeNumInput('s8-o', d.oNum, '명', '노년 인구 수', `전체 인구 ${d.tot}명의 ${d.op}%! ${d.tot} × ${d.op / 100} 을 계산해 봐.`))}
+            `)}
+
+            ${stepCard('🔢 [Step B] 배수 조건으로 전체 인구 정하기', `
+                <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">“t년에 병국과 정국의 전체 인구는 같다. 병국의 전체 인구는 t년 대비 t+20년에 <strong>${d.grow}배</strong>로 증가하였고, t+20년에 병국 전체 인구는 정국 전체 인구의 <strong>${d.ratio}배</strong>이다.” → <strong>t년 병국을 100명</strong>으로 놓으면?</p>
+                ${stepRow(1, 't년 정국 전체 인구 =', makeNumInput('s8-m1', 100, '명', 't년 정국 전체 인구', 't년에 두 나라의 전체 인구는 <strong>같다</strong>고 했어!'))}
+                ${stepRow(2, 't+20년 병국 전체 인구 =', makeNumInput('s8-m2', d.m2, '명', 't+20년 병국 전체 인구', `t년 병국(100명)의 <strong>${d.grow}배</strong>야!`))}
+                ${stepRow(3, 't+20년 정국 전체 인구 =', makeNumInput('s8-m3', d.m3, '명', 't+20년 정국 전체 인구', `t+20년 병국이 정국의 ${d.ratio}배라는 건 정국 = (t+20년 병국) ÷ ${d.ratio} 라는 뜻이야!`))}
+                <p class="text-xs sm:text-sm text-amber-900 leading-relaxed pt-1">“A 지역 인구는 B 지역의 <strong>${d.r1}배</strong>이고, B 지역 인구는 C 지역의 <strong>${d.r2}배</strong>이다.” → 가장 작은 <strong>C 지역을 100명</strong>으로 놓으면?</p>
+                ${stepRow(4, 'B 지역 인구 =', makeNumInput('s8-m4', d.bReg, '명', 'B 지역 인구', `B 지역은 C 지역(100명)의 <strong>${d.r2}배</strong>!`))}
+                ${stepRow(5, 'A 지역 인구 =', makeNumInput('s8-m5', d.aReg, '명', 'A 지역 인구', `A 지역은 <strong>B 지역</strong>의 ${d.r1}배! (C 지역의 ${d.r1}배가 아니야, 조심!)`))}
+            `)}
+
+            ${stepCard('⚖️ [Step C] 비율이 높다고 인구 수도 많을까?', `
+                <p class="text-xs sm:text-sm text-amber-900">갑 지역은 전체 인구 <strong>${d.gTot}명</strong> 중 노년 인구가 <strong>${d.gPct}%</strong>, 을 지역은 전체 인구 <strong>${d.eTot}명</strong> 중 노년 인구가 <strong>${d.ePct}%</strong>이다.</p>
+                ${stepRow(1, '갑 지역 노년 인구 수 =', makeNumInput('s8-c1', d.gNum, '명', '갑 지역 노년 인구 수', `${d.gTot}명의 ${d.gPct}% = ${d.gTot} × ${d.gPct / 100}`))}
+                ${stepRow(2, '을 지역 노년 인구 수 =', makeNumInput('s8-c2', d.eNum, '명', '을 지역 노년 인구 수', `${d.eTot}명의 ${d.ePct}% = ${d.eTot} × ${d.ePct / 100}`))}
+            `)}
+
+            ${renderOxBox('s8', ox, '🎯 개념 O/X')}
+
+            <div id="s8-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage8()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    디딤돌 3 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage8() {
+            verifyStepStage(8, '배수 조건으로 전체 인구를 정하고 비율을 곱하는 법을 익혔어요! 이제 수특 4번 인구수 표와 선지를 정복하러 가요!');
+        }
+
+        // 다음 스테이지 버튼 (탭 순서 기준)
+        function nextStageButton(stageId) {
+            const pos = STAGE_ORDER.indexOf(stageId);
+            const nextId = STAGE_ORDER[pos + 1];
+            if (nextId === undefined) return '';
+            const st = STAGE_LIST.find(s => s.id === nextId);
+            return `
+                <button onclick="switchStage(${nextId})" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: ${st.short} (${st.title}) 👉
+                </button>`;
+        }
+
+        // ==========================================
+        // 8-3. [추가] 진행 상황 자동 저장 (같은 기기·브라우저)
+        // ==========================================
+        const SAVE_KEY = 'eunjimon-dependency-ratio-v1';
+
+        function saveProgress() {
+            try {
+                const pick = (o, keys) => keys.reduce((acc, k) => { acc[k] = o[k]; return acc; }, {});
+                const data = {
+                    currentStage: state.currentStage,
+                    xp: state.xp,
+                    currentLevel: state.currentLevel,
+                    clearedStages: [...state.clearedStages],
+                    userInputs: state.userInputs,
+                    wrongCounts: state.wrongCounts,
+                    s0: pick(state.s0, ['rewardClaimed', 'mcAnswers']),
+                    s1: pick(state.s1, ['rewardClaimed', 'oxChecks']),
+                    s23: pick(state.s2, ['s2RewardClaimed', 's3RewardClaimed', 'oxChecks']),
+                    s45: pick(state.s4, ['s4RewardClaimed', 's5RewardClaimed', 'oxChecks']),
+                    s6: state.s6, s7: state.s7, s8: state.s8
+                };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+            } catch (e) { /* 저장이 막힌 환경에서는 조용히 넘어감 */ }
+        }
+
+        function loadProgress() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                state.currentStage = STAGE_ORDER.includes(data.currentStage) ? data.currentStage : 0;
+                state.xp = Number(data.xp) || 0;
+                state.currentLevel = Number(data.currentLevel) || 1;
+                state.clearedStages = new Set(data.clearedStages || []);
+                state.userInputs = data.userInputs || {};
+                state.wrongCounts = data.wrongCounts || {};
+                Object.assign(state.s0, data.s0 || {});
+                Object.assign(state.s1, data.s1 || {});
+                Object.assign(state.s2, data.s23 || {});   // s2와 s3는 같은 객체
+                Object.assign(state.s4, data.s45 || {});   // s4와 s5는 같은 객체
+                [6, 7, 8].forEach(id => { if (data[`s${id}`]) state[`s${id}`] = data[`s${id}`]; });
+            } catch (e) {
+                initAllProblems();
+            }
+        }
+
+        function resetProgress() {
+            if (!confirm('지금까지의 경험치와 풀이 기록을 모두 지우고 처음부터 시작할까요?')) return;
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
+            state.currentStage = 0;
+            state.xp = 0;
+            state.currentLevel = 1;
+            state.clearedStages = new Set();
+            state.wrongCounts = {};
+            initAllProblems();
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 9. 앱 초기화
+        // ==========================================
+        window.onload = function () {
+            initAllProblems();
+            const moved = certImportFromUrl();   // [추가] 카카오톡 등에서 넘어온 기록
+            loadProgress();   // [추가] 저장된 진행 상황 불러오기
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            if (moved) {   // [추가] 넘어온 경우 인증서 창을 바로 열어 줌
+                openCertModal();
+                updateCertPreview();
+                const m = document.getElementById('cert-image-msg');
+                m.textContent = '✅ 크롬(인터넷)에서 열렸어요! 학번·이름을 다시 쓰고 [🖼️ 이미지로 저장]을 눌러 주세요.';
+                m.className = 'text-center text-sm font-bold text-emerald-600 mt-2';
+            }
+        };
+    </script>
+</body>
+</html>

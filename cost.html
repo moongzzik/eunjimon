@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통사몬 - 통합사회 기회비용 마스터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FEFCE8;
+            background-image: radial-gradient(#FDE047 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            color: #422006;
+            overflow-x: hidden;
+        }
+        .font-game {
+            font-family: 'Jua', sans-serif;
+        }
+        /* 애니메이션 */
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+            animation: bounceSlow 2.2s infinite ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.75); opacity: 0; }
+            70% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
+        }
+        .glow-gold {
+            animation: pulseGlow 2s infinite;
+        }
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF9C3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FACC15;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 상단 고정 HUD (트레이너 상태 및 메뉴) -->
+    <header class="sticky top-0 z-30 bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 border-b-4 border-amber-500 shadow-md">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <!-- 왼쪽: 타이틀 & 현재 파트너 통사몬 -->
+            <div class="flex items-center gap-3">
+                <div id="hud-avatar" class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl border-3 border-amber-600 flex items-center justify-center shadow-inner shrink-0 cursor-pointer hover:scale-105 transition" onclick="openDexModal()" title="진화 도감 열기">
+                    <!-- JS로 현재 진화 단계 SVG 삽입 -->
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] sm:text-xs font-bold text-amber-900 bg-yellow-100/90 px-2 py-0.5 rounded-full border border-amber-400">
+                            고1 통합사회 3단원
+                        </span>
+                        <span id="hud-stage-name" class="text-[11px] sm:text-xs font-extrabold text-white bg-amber-600 px-2 py-0.5 rounded-full">
+                            Lv.1 알 통사몬
+                        </span>
+                    </div>
+                    <h1 class="text-lg sm:text-2xl font-game text-amber-950 tracking-tight leading-tight mt-0.5">
+                        ⚡ 통사몬 <span class="text-amber-800 text-base sm:text-lg">기회비용 마스터</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- 중앙: 경험치(XP) 게이지 -->
+            <div class="flex-1 min-w-[160px] max-w-xs mx-2">
+                <div class="flex justify-between text-xs font-extrabold text-amber-950 mb-1">
+                    <span>경험치 (XP)</span>
+                    <span id="xp-text">0 / 500 XP</span>
+                </div>
+                <div class="w-full h-3.5 bg-amber-100 rounded-full border-2 border-amber-600 overflow-hidden p-0.5">
+                    <div id="xp-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 도감, 인증서, 사운드 버튼 -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="openDexModal()" class="bg-white hover:bg-yellow-50 text-amber-950 font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>📖</span><span>진화도감</span>
+                </button>
+                <button onclick="openCertModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-800 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>🎓</span><span>인증서</span>
+                </button>
+                <button onclick="resetProgress()" class="bg-white hover:bg-yellow-50 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="처음부터 다시 하기 (경험치·풀이 기록 지우기)">
+                    <span>🔄</span><span>처음부터</span>
+                </button>
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="bg-yellow-100 hover:bg-yellow-200 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="효과음 켜기/끄기">
+                    <span id="sound-icon">🔊</span><span id="sound-label">소리 켬</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 스테이지 탭 네비게이션 -->
+        <div class="bg-amber-100/90 border-t border-amber-400">
+            <div class="max-w-5xl mx-auto px-2 sm:px-6 py-1.5 flex overflow-x-auto gap-1.5 no-scrollbar" id="stage-tabs">
+                <!-- JS로 탭 버튼 생성 -->
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 학습 컨테이너 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-6">
+        <div id="stage-container" class="bg-white rounded-3xl border-4 border-amber-400 shadow-xl p-4 sm:p-8 transition-all">
+            <!-- 현재 선택된 스테이지 콘텐츠가 렌더링됨 -->
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="text-center py-4 text-xs text-amber-800/70 font-medium">
+        통합사회 3단원 · 합리적 선택과 기회비용 학습 게임 · 통사몬 트레이닝 센터
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- 모달 1: 무시무시한 도깨비 통사몬 오답 경고 팝업 -->
+    <!-- ========================================== -->
+    <div id="goblin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div id="goblin-card" class="bg-gradient-to-b from-slate-900 via-red-950 to-slate-950 border-4 border-red-500 rounded-3xl max-w-md w-full p-6 text-white shadow-2xl relative animate-pop-in">
+            <!-- 번개 배경 장식 -->
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-red-600 text-yellow-300 font-game text-sm sm:text-base px-4 py-1 rounded-full border-2 border-yellow-300 shadow-lg whitespace-nowrap">
+                ⚡ 도깨비 통사몬 출현! ⚡
+            </div>
+
+            <div class="flex flex-col items-center text-center mt-2">
+                <!-- 무시무시한 도깨비 통사몬 SVG -->
+                <div id="goblin-svg-box" class="w-36 h-36 my-2 animate-bounce-slow"></div>
+
+                <h3 class="font-game text-2xl sm:text-3xl text-red-400 tracking-wide mt-1">
+                    "어허! 다시 풀어봐!!"
+                </h3>
+                <p id="goblin-target-label" class="text-xs sm:text-sm font-bold text-yellow-300 bg-red-900/70 px-3 py-1 rounded-full mt-2 border border-red-500/50">
+                    틀린 항목: 암묵적 비용
+                </p>
+
+                <!-- 힌트 말풍선 -->
+                <div class="bg-slate-800/90 border-2 border-amber-400/80 rounded-2xl p-4 mt-4 w-full text-left shadow-inner">
+                    <div class="flex items-center gap-1.5 text-amber-400 font-extrabold text-xs sm:text-sm mb-1.5">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>도깨비 통사몬의 특별 힌트</span>
+                    </div>
+                    <p id="goblin-hint-text" class="text-sm sm:text-base text-slate-100 leading-relaxed font-medium">
+                        힌트 내용이 여기에 표시됩니다.
+                    </p>
+                </div>
+
+                <button id="goblin-close-btn" onclick="closeGoblinModal()" class="mt-5 w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-game text-lg py-3 rounded-2xl border-2 border-yellow-300 shadow-lg active:translate-y-0.5 transition cursor-pointer">
+                    🔥 알겠어요! 다시 풀어볼게요
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 2: 통사몬 진화 축하 팝업 -->
+    <!-- ========================================== -->
+    <div id="evo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-gradient-to-b from-yellow-200 via-amber-100 to-white border-4 border-amber-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl animate-pop-in">
+            <div class="inline-block bg-amber-500 text-white font-game text-sm px-4 py-1 rounded-full mb-2 shadow">
+                ✨ 축하합니다! 진화 성공! ✨
+            </div>
+            <h3 class="font-game text-2xl sm:text-3xl text-amber-950">
+                통사몬이 진화했습니다!
+            </h3>
+            <div id="evo-svg-box" class="w-40 h-40 mx-auto my-4 bg-white rounded-full border-4 border-yellow-400 flex items-center justify-center shadow-inner glow-gold"></div>
+            <p id="evo-new-name" class="font-game text-2xl text-amber-700"></p>
+            <p id="evo-new-desc" class="text-sm text-amber-900 mt-1 font-medium"></p>
+            <button onclick="closeEvoModal()" class="mt-5 w-full bg-amber-500 hover:bg-amber-600 text-white font-game text-lg py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                신난다! 계속 모험하기 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 3: 통사몬 5단계 진화 도감 -->
+    <!-- ========================================== -->
+    <div id="dex-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-amber-50 border-4 border-amber-500 rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl animate-pop-in overflow-hidden">
+            <div class="bg-yellow-300 px-6 py-4 border-b-2 border-amber-400 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📖</span>
+                    <h3 class="font-game text-xl sm:text-2xl text-amber-950">통사몬 진화 도감</h3>
+                </div>
+                <button onclick="closeDexModal()" class="w-9 h-9 rounded-full bg-white hover:bg-amber-100 border-2 border-amber-500 text-amber-900 font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-3" id="dex-list">
+                <!-- JS로 진화 단계 카드 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 4: 선생님 제출용 학습 완료 인증서 -->
+    <!-- ========================================== -->
+    <!-- [추가] 인증서 이미지 저장 창 (스마트폰·태블릿 대응)
+         - 공유 지원 기기: '사진에 저장/공유' 버튼 → 공유 메뉴의 '이미지 저장'으로 사진첩에 저장
+         - 그 밖의 기기: 이미지를 길게 눌러 저장 -->
+    <div id="cert-image-overlay" class="fixed inset-0 hidden items-center justify-center bg-black/80 p-3" style="z-index:70;">
+        <div class="bg-white rounded-3xl border-4 border-emerald-500 w-full max-w-md max-h-[95vh] overflow-y-auto p-4 text-center shadow-2xl">
+            <h3 class="font-game text-xl text-emerald-800 mb-2">🖼️ 인증서 이미지가 완성됐어요!</h3>
+            <img id="cert-image-preview" alt="학습 완료 인증서" class="mx-auto w-full max-w-[320px] rounded-xl border-2 border-amber-300 shadow" style="-webkit-touch-callout: default;">
+            <div id="cert-share-guide" class="mt-3 text-sm font-bold text-slate-700 leading-relaxed"></div>
+            <div class="flex flex-col gap-2 mt-3">
+                <!-- [추가] 카카오톡 등 앱 안 브라우저: 크롬/사파리로 옮겨 열기 (학습 기록도 같이 넘어감) -->
+                <button id="cert-external-btn" onclick="certOpenExternal()" class="hidden w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl border-2 border-sky-700 text-base">
+                    🌐 크롬(인터넷)으로 열어서 저장하기
+                </button>
+                <button id="cert-share-btn" onclick="shareCertImage()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl border-2 border-emerald-700 text-base">
+                    📲 사진에 저장 / 공유하기
+                </button>
+                <button onclick="downloadCertFile()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl border-2 border-amber-700 text-sm">
+                    💾 파일로 다운로드
+                </button>
+                <button onclick="closeCertImageOverlay()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-sm">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cert-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-white border-4 border-amber-500 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl animate-pop-in">
+            <div class="flex items-center justify-between border-b-2 border-amber-200 pb-3 mb-4">
+                <h3 class="font-game text-xl sm:text-2xl text-amber-950">🎓 통사몬 학습 완료 인증서</h3>
+                <button onclick="closeCertModal()" class="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- 학번/이름 입력 -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">학번 (예: 10315)</label>
+                    <input type="text" id="student-id-input" oninput="updateCertPreview()" placeholder="학번 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">이름 (예: 김통사)</label>
+                    <input type="text" id="student-name-input" oninput="updateCertPreview()" placeholder="이름 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+            </div>
+
+            <!-- 인증 카드 미리보기 (캡처용) -->
+            <div id="cert-card-area" class="bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-200 border-4 border-amber-500 rounded-2xl p-5 text-center relative shadow-inner">
+                <div class="text-xs font-extrabold text-amber-700 tracking-widest uppercase">G1 Social Studies · Opportunity Cost</div>
+                <h4 class="font-game text-2xl text-amber-950 mt-1">기회비용 마스터 인증서</h4>
+                
+                <div id="cert-avatar" class="w-24 h-24 mx-auto my-3 bg-white rounded-full border-3 border-amber-500 flex items-center justify-center shadow"></div>
+                
+                <div class="bg-white/90 rounded-xl p-3 border border-amber-300 text-sm space-y-1.5">
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">트레이너:</span>
+                        <span id="cert-student-display" class="font-black text-amber-950">미입력 학생</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">달성 등급:</span>
+                        <span id="cert-rank-display" class="font-black text-orange-600">Lv.1 알 통사몬</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">획득 경험치:</span>
+                        <span id="cert-xp-display" class="font-black text-amber-950">0 XP</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">클리어 현황:</span>
+                        <span id="cert-stages-display" class="font-black text-emerald-700">0 / 6 스테이지</span>
+                    </div>
+                </div>
+                <p id="cert-timestamp" class="text-[11px] text-amber-700 mt-3 font-medium"></p>
+            </div>
+
+            <div class="flex gap-2 mt-4">
+                <!-- [추가] 인증서 이미지 저장 버튼 -->
+                <button onclick="downloadCertImage().catch(() => { const m = document.getElementById('cert-image-msg'); m.textContent = '😢 이미지를 만들지 못했어요. 크롬이나 사파리에서 다시 열어 주세요.'; m.className = 'text-center text-xs font-bold text-rose-600 mt-2'; })" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-emerald-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <span>🖼️</span><span>이미지로 저장</span>
+                </button>
+                <button onclick="copyCertSummary()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl border-2 border-amber-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <i class="fa-regular fa-copy"></i><span>결과 텍스트 복사</span>
+                </button>
+                <button onclick="closeCertModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-sm transition">
+                    닫기
+                </button>
+            </div>
+            <p id="copy-feedback" class="text-center text-xs font-bold text-emerald-600 mt-2 hidden">
+                ✅ 클립보드에 복사되었습니다! 클래스룸/패들렛에 붙여넣기 하세요.
+            </p>
+            <!-- [추가] 이미지 저장 안내 -->
+            <p id="cert-image-msg" class="hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 효과음 시스템 (Web Audio API)
+        // ==========================================
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    // 경쾌한 띵동!
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'clear') {
+                    // 스테이지 클리어 팡파레
+                    osc.type = 'triangle';
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                } else if (type === 'goblin') {
+                    // 무시무시한 도깨비 등장 저음 효과
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.linearRampToValueAtTime(85, now + 0.35);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'evolve') {
+                    // 진화 멜로디
+                    osc.type = 'sine';
+                    const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.09);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+                    osc.start(now);
+                    osc.stop(now + 0.75);
+                }
+            } catch (e) {
+                console.warn('Audio play failed:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            icon.textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-label').textContent = soundEnabled ? '소리 켬' : '소리 끔';
+        }
+
+        // ==========================================
+        // 2. 귀여운 통사몬 & 무시무시한 도깨비 통사몬 SVG
+        // ==========================================
+        function getTongsamonSVG(level) {
+            if (level === 1) {
+                // Lv.1 황금빛 통사몬 알
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <ellipse cx="60" cy="105" rx="28" ry="6" fill="#FDE047" opacity="0.6"/>
+                    <path d="M60 18 C36 18 24 48 24 72 C24 94 40 104 60 104 C80 104 96 94 96 72 C96 48 84 18 60 18 Z" fill="#FEF08A" stroke="#CA8A04" stroke-width="4"/>
+                    <path d="M40 48 L50 38 L60 50 L70 38 L80 48" fill="none" stroke="#EAB308" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="44" cy="74" r="6" fill="#FACC15"/>
+                    <circle cx="76" cy="70" r="7" fill="#FACC15"/>
+                    <circle cx="60" cy="86" r="5" fill="#FACC15"/>
+                </svg>`;
+            } else if (level === 2) {
+                // Lv.2 아기 통사몬
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <!-- 귀 -->
+                    <path d="M35 45 L22 16 L48 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M22 16 L31 23 L26 28 Z" fill="#422006"/>
+                    <path d="M85 45 L98 16 L72 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M98 16 L89 23 L94 28 Z" fill="#422006"/>
+                    <!-- 얼굴 -->
+                    <circle cx="60" cy="68" r="36" fill="#FEF08A" stroke="#854D0E" stroke-width="3.5"/>
+                    <!-- 눈 -->
+                    <circle cx="46" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="44.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <circle cx="74" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="72.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <!-- 볼터치 -->
+                    <circle cx="36" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <circle cx="84" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <!-- 입 -->
+                    <path d="M53 75 Q60 82 67 75" fill="none" stroke="#422006" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            } else if (level === 3) {
+                // Lv.3 번개 통사몬
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <!-- 번개 꼬리 -->
+                    <path d="M86 86 L108 72 L100 60 L114 44 L94 52 L100 64 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3" stroke-linejoin="round"/>
+                    <!-- 긴 귀 -->
+                    <path d="M36 42 L18 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M18 10 L29 18 L23 24 Z" fill="#422006"/>
+                    <path d="M84 42 L102 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M102 10 L91 18 L97 24 Z" fill="#422006"/>
+                    <!-- 몸통/얼굴 -->
+                    <ellipse cx="60" cy="70" rx="36" ry="34" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <!-- 이마 번개 마크 -->
+                    <path d="M62 42 L55 51 L61 51 L57 59" fill="none" stroke="#EA580C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- 눈 -->
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <!-- 볼터치 -->
+                    <circle cx="34" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <circle cx="86" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <!-- 웃는 입 -->
+                    <path d="M51 78 Q60 88 69 78 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            } else if (level === 4) {
+                // Lv.4 히어로 망토 통사몬
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <!-- 붉은 히어로 망토 -->
+                    <path d="M22 68 Q12 96 24 108 L96 108 Q108 96 98 68 Z" fill="#EF4444" stroke="#991B1B" stroke-width="3"/>
+                    <!-- 귀 -->
+                    <path d="M36 42 L16 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M84 42 L104 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <!-- 얼굴 -->
+                    <circle cx="60" cy="68" r="35" fill="#FACC15" stroke="#854D0E" stroke-width="3.5"/>
+                    <!-- 고글/바이저 -->
+                    <rect x="33" y="54" width="54" height="16" rx="8" fill="#38BDF8" fill-opacity="0.75" stroke="#0369A1" stroke-width="2.5"/>
+                    <circle cx="46" cy="62" r="4.5" fill="#1E293B"/>
+                    <circle cx="74" cy="62" r="4.5" fill="#1E293B"/>
+                    <!-- 볼터치 -->
+                    <circle cx="35" cy="77" r="6.5" fill="#F97316"/>
+                    <circle cx="85" cy="77" r="6.5" fill="#F97316"/>
+                    <!-- 자신감 입 -->
+                    <path d="M50 80 Q60 89 70 80" fill="none" stroke="#422006" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>`;
+            } else {
+                // Lv.5 전설의 경제왕 통사몬 (왕관 착용)
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <!-- 후광 -->
+                    <circle cx="60" cy="65" r="52" fill="#FEF08A" opacity="0.55"/>
+                    <!-- 귀 -->
+                    <path d="M34 45 L14 14 L48 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M86 45 L106 14 L72 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <!-- 얼굴 -->
+                    <circle cx="60" cy="70" r="35" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <!-- 황금 왕관 -->
+                    <path d="M40 36 L44 18 L53 28 L60 14 L67 28 L76 18 L80 36 Z" fill="#F59E0B" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="28" r="3" fill="#EF4444"/>
+                    <!-- 반짝이는 눈 -->
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.5" fill="#FEF08A"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.5" fill="#FEF08A"/>
+                    <!-- 볼터치 -->
+                    <circle cx="34" cy="78" r="7" fill="#EF4444"/>
+                    <circle cx="86" cy="78" r="7" fill="#EF4444"/>
+                    <!-- 미소 -->
+                    <path d="M49 80 Q60 92 71 80 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            }
+        }
+
+        // 무시무시한 도깨비 통사몬 SVG
+        function getScaryGoblinSVG() {
+            return `
+            <svg viewBox="0 0 140 140" class="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.85)]">
+                <!-- 도깨비 방망이 (오른쪽) -->
+                <g transform="rotate(22 112 85)">
+                    <rect x="104" y="32" width="16" height="78" rx="8" fill="#78350F" stroke="#FACC15" stroke-width="2.5"/>
+                    <circle cx="107" cy="45" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="55" r="2.5" fill="#FDE047"/>
+                    <circle cx="107" cy="68" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="80" r="2.5" fill="#FDE047"/>
+                </g>
+                <!-- 불꽃 오라 -->
+                <path d="M22 92 Q10 62 32 45 Q28 24 50 28 Q68 8 86 28 Q108 24 104 45 Q126 62 114 92 Z" fill="#DC2626" opacity="0.55"/>
+                <!-- 도깨비 뿔 2개 -->
+                <path d="M42 42 L26 10 L56 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M98 42 L114 10 L84 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <!-- 뾰족한 귀 -->
+                <path d="M30 58 L10 46 L28 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <path d="M110 58 L130 46 L112 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <!-- 붉고 어두운 얼굴 -->
+                <circle cx="70" cy="76" r="40" fill="#B91C1C" stroke="#450A0A" stroke-width="4"/>
+                <!-- 이마 불꽃 문양 -->
+                <path d="M70 42 C64 50 66 56 70 60 C74 56 76 50 70 42 Z" fill="#FACC15"/>
+                <!-- 사나운 눈썹 -->
+                <path d="M40 60 L62 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <path d="M100 60 L78 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <!-- 이글거리는 눈 -->
+                <ellipse cx="52" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="53" cy="73" r="3" fill="#7F1D1D"/>
+                <ellipse cx="88" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="87" cy="73" r="3" fill="#7F1D1D"/>
+                <!-- 험악한 입과 송곳니 -->
+                <path d="M46 96 Q70 84 94 96 Q84 108 70 105 Q56 108 46 96 Z" fill="#450A0A" stroke="#FEF08A" stroke-width="2"/>
+                <polygon points="52,93 57,103 61,92" fill="#FFFFFF"/>
+                <polygon points="88,93 83,103 79,92" fill="#FFFFFF"/>
+            </svg>`;
+        }
+
+        // ==========================================
+        // 3. 진화 단계 및 게임 상태 데이터
+        // ==========================================
+        const EVOLUTION_STAGES = [
+            { level: 1, minXp: 0, name: 'Lv.1 황금빛 통사몬 알', desc: '경제학의 새싹을 품고 있는 신비로운 노란 알입니다.' },
+            { level: 2, minXp: 100, name: 'Lv.2 아기 통사몬', desc: '명시적 비용과 암묵적 비용을 구분하기 시작한 귀여운 통사몬!' },
+            { level: 3, minXp: 250, name: 'Lv.3 번개 통사몬', desc: '기회비용을 번개처럼 빠르게 암산해내는 실력파 통사몬!' },
+            { level: 4, minXp: 400, name: 'Lv.4 히어로 통사몬', desc: '매몰비용의 함정에도 절대 속지 않는 합리적 선택의 수호자!' },
+            { level: 5, minXp: 550, name: 'Lv.5 전설의 경제왕 통사몬', desc: '모든 기회비용 마스터 훈련을 정복한 최고 등급의 전설 통사몬!' }
+        ];
+
+        const STAGE_LIST = [
+            { id: 0, short: 'Stage 0', title: '기회비용 핵심 공식', xp: 80 },
+            { id: 1, short: 'Stage 1', title: '문제 1 · 알바 vs 영화', xp: 100 },
+            { id: 2, short: 'Stage 2', title: '문제 2 · 여행지 3곳 선택', xp: 120 },
+            { id: 3, short: 'Stage 3', title: '문제 3 · 방과후 특강', xp: 120 },
+            { id: 4, short: 'Stage 4', title: '문제 4 · 개인방송 vs 회사', xp: 130 },
+            { id: 5, short: 'Stage 5', title: '내신 추론 · 조건 변화', xp: 100 }
+        ];
+
+        let state = {
+            currentStage: 0,
+            xp: 0,
+            currentLevel: 1,
+            clearedStages: new Set(),
+            showHelperMemo: false,
+            lastFocusedInputId: null,
+            s0Answers: {},
+            s1: null,
+            s2: null,
+            s3: null,
+            s4: null,
+            s5: null,
+            userInputs: {}
+        };
+
+        // ==========================================
+        // 4. 문제 생성기 (기본 학습지 + 무한 랜덤)
+        // ==========================================
+        function clearStageInputs(stagePrefix) {
+            Object.keys(state.userInputs).forEach(k => {
+                if (k.startsWith(stagePrefix)) {
+                    delete state.userInputs[k];
+                }
+            });
+        }
+        function randInt(min, max, step = 1) {
+            const count = Math.floor((max - min) / step) + 1;
+            return min + Math.floor(Math.random() * count) * step;
+        }
+
+        function createStage1Data(isRandom = false) {
+            let bA, cA, bB, cB;
+            if (!isRandom) {
+                bA = 80000; cA = 10000;
+                bB = 60000; cB = 20000;
+            } else {
+                do {
+                    bA = randInt(50000, 120000, 10000);
+                    cA = randInt(5000, 30000, 5000);
+                    bB = randInt(40000, 100000, 10000);
+                    cB = randInt(10000, 40000, 5000);
+                } while ((bA - cA) === (bB - cB) || bA <= cA || bB <= cB);
+            }
+            const netValA = bA - cA;
+            const netValB = bB - cB;
+            const impA = netValB;
+            const impB = netValA;
+            const oppA = cA + impA;
+            const oppB = cB + impB;
+            const netA = bA - oppA;
+            const netB = bB - oppB;
+            const best = netA > netB ? 'A' : 'B';
+
+            return { isRandom, rewardClaimed: false, nameA: '아르바이트', nameB: '영화 관람', bA, cA, bB, cB, netValA, netValB, impA, impB, oppA, oppB, netA, netB, best, userChoice: null };
+        }
+
+        function createStage2Data(isRandom = false) {
+            let items;
+            if (!isRandom) {
+                items = [
+                    { name: '제주도 여행', b: 200, c: 100 },
+                    { name: '일본 여행', b: 600, c: 300 },
+                    { name: '유럽 여행', b: 700, c: 500 }
+                ];
+            } else {
+                let valid = false;
+                while (!valid) {
+                    const n1 = randInt(150, 350, 50), c1 = randInt(50, n1 - 50, 50);
+                    const n2 = randInt(350, 650, 50), c2 = randInt(100, n2 - 50, 50);
+                    const n3 = randInt(450, 900, 50), c3 = randInt(200, n3 - 50, 50);
+                    const v1 = n1 - c1, v2 = n2 - c2, v3 = n3 - c3;
+                    if (v1 > 0 && v2 > 0 && v3 > 0 && new Set([v1, v2, v3]).size === 3) {
+                        items = [
+                            { name: '제주도 여행', b: n1, c: c1 },
+                            { name: '일본 여행', b: n2, c: c2 },
+                            { name: '유럽 여행', b: n3, c: c3 }
+                        ];
+                        valid = true;
+                    }
+                }
+            }
+            items.forEach(it => it.netVal = it.b - it.c);
+            items.forEach((it, idx) => {
+                const others = items.filter((_, i) => i !== idx).map(o => o.netVal);
+                it.imp = Math.max(...others);
+                it.opp = it.c + it.imp;
+                it.net = it.b - it.opp;
+            });
+            let bestIdx = 0;
+            items.forEach((it, i) => { if (it.net > items[bestIdx].net) bestIdx = i; });
+            return { isRandom, rewardClaimed: false, items, bestIdx, userChoice: null };
+        }
+
+        function createStage3Data(isRandom = false) {
+            let items;
+            if (!isRandom) {
+                items = [
+                    { name: '테니스 특강', b: 60, c: 20 },
+                    { name: '볼링 특강', b: 40, c: 17 },
+                    { name: '배드민턴 특강', b: 50, c: 15 }
+                ];
+            } else {
+                let valid = false;
+                while (!valid) {
+                    const b1 = randInt(45, 80, 5), c1 = randInt(10, 30, 5);
+                    const b2 = randInt(35, 70, 5), c2 = randInt(10, 25, 1);
+                    const b3 = randInt(40, 75, 5), c3 = randInt(10, 25, 5);
+                    const v1 = b1 - c1, v2 = b2 - c2, v3 = b3 - c3;
+                    if (v1 > 0 && v2 > 0 && v3 > 0 && new Set([v1, v2, v3]).size === 3) {
+                        items = [
+                            { name: '테니스 특강', b: b1, c: c1 },
+                            { name: '볼링 특강', b: b2, c: c2 },
+                            { name: '배드민턴 특강', b: b3, c: c3 }
+                        ];
+                        valid = true;
+                    }
+                }
+            }
+            items.forEach(it => it.netVal = it.b - it.c);
+            items.forEach((it, idx) => {
+                const others = items.filter((_, i) => i !== idx).map(o => o.netVal);
+                it.imp = Math.max(...others);
+                it.opp = it.c + it.imp;
+                it.net = it.b - it.opp;
+            });
+            let bestIdx = 0;
+            items.forEach((it, i) => { if (it.net > items[bestIdx].net) bestIdx = i; });
+            return { isRandom, rewardClaimed: false, items, bestIdx, userChoice: null };
+        }
+
+        function createStage4Data(isRandom = false) {
+            let sunk, equip, edit, streamRev, salary;
+            if (!isRandom) {
+                sunk = 20; equip = 50; edit = 20; streamRev = 400; salary = 300;
+            } else {
+                // Stage 5(장비 대여료 인상 추론)와 100% 동일한 숫자로 매끄럽게 연동되도록
+                // 초기 상태에서 인터넷 개인 방송의 순편익이 양수(+20~+60만원)가 되도록 생성
+                let ok = false;
+                while (!ok) {
+                    sunk = randInt(10, 50, 5);
+                    equip = randInt(30, 70, 10);
+                    edit = randInt(10, 40, 10);
+                    salary = randInt(240, 380, 20);
+                    const margin = randInt(20, 60, 10);
+                    streamRev = salary + equip + edit + margin;
+                    if (streamRev <= 580) {
+                        ok = true;
+                    }
+                }
+            }
+            const bA = streamRev, cA = equip + edit, impA = salary, oppA = cA + impA, netA = bA - oppA;
+            const bB = salary, cB = 0, impB = streamRev - cA, oppB = cB + impB, netB = bB - oppB;
+            const best = netA > netB ? 'A' : 'B';
+            return { isRandom, rewardClaimed: false, sunk, equip, edit, streamRev, salary, bA, cA, impA, oppA, netA, bB, cB, impB, oppB, netB, best, userChoice: null };
+        }
+
+        function createStage5Data(isRandom = false) {
+            const base = state.s4 || createStage4Data(false);
+            const streamRev = base.streamRev;
+            const edit = base.edit;
+            const salary = base.salary;
+            const oldEquip = base.equip;
+
+            const breakEvenEquip = streamRev - edit - salary;
+            const addAmount = randInt(10, 30, 10);
+            const increasedEquip = breakEvenEquip + addAmount;
+            const newNetStream = streamRev - (increasedEquip + edit) - salary;
+            return { isRandom, rewardClaimed: false, streamRev, edit, salary, oldEquip, breakEvenEquip, increasedEquip, newNetStream, userChoice: null };
+        }
+
+        function initAllProblems() {
+            state.userInputs = {};
+            state.s1 = createStage1Data(false);
+            state.s2 = createStage2Data(false);
+            state.s3 = createStage3Data(false);
+            state.s4 = createStage4Data(false);
+            state.s5 = createStage5Data(false);
+        }
+
+        // ==========================================
+        // 5. 실시간 즉각 채점 & 도깨비 통사몬 팝업 로직
+        // ==========================================
+        function handleCellInput(inputEl) {
+            const existing = state.userInputs[inputEl.id] || {};
+            state.userInputs[inputEl.id] = {
+                value: inputEl.value,
+                valid: existing.valid || null
+            };
+            saveProgress();
+        }
+
+        function handleCellEnter(e, inputEl) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validateSingleCell(inputEl, true);
+            }
+        }
+
+        function handleCellBlur(inputEl) {
+            if (inputEl.value.trim() === '') return;
+            validateSingleCell(inputEl, false);
+        }
+
+        function validateSingleCell(inputEl, moveNextOnSuccess = false) {
+            const rawVal = inputEl.value.trim();
+            if (rawVal === '' || rawVal === '-') return false;
+
+            const userNum = Number(rawVal);
+            const expected = Number(inputEl.dataset.answer);
+            const label = inputEl.dataset.label || '빈칸';
+            const hint = inputEl.dataset.hint || '공식을 다시 한 번 떠올려 보세요!';
+
+            if (!isNaN(userNum) && userNum === expected) {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'true' };
+                inputEl.classList.remove('border-amber-300', 'border-red-500', 'bg-red-50', 'text-red-700');
+                inputEl.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.dataset.valid = 'true';
+                playSound('correct');
+
+                if (moveNextOnSuccess) {
+                    focusNextInput(inputEl);
+                }
+                saveProgress();
+                return true;
+            } else {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'false' };
+                inputEl.classList.remove('border-amber-300', 'border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.classList.add('border-red-500', 'bg-red-50', 'text-red-700', 'animate-shake');
+                setTimeout(() => inputEl.classList.remove('animate-shake'), 450);
+                inputEl.dataset.valid = 'false';
+
+                state.lastFocusedInputId = inputEl.id;
+                showGoblinModal(label, hint);
+                saveProgress();
+                return false;
+            }
+        }
+
+        function focusNextInput(currentEl) {
+            const inputs = Array.from(document.querySelectorAll('#stage-container input[data-answer]'));
+            const idx = inputs.indexOf(currentEl);
+            if (idx >= 0 && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            }
+        }
+
+        function showGoblinModal(label, hint) {
+            playSound('goblin');
+            document.getElementById('goblin-svg-box').innerHTML = getScaryGoblinSVG();
+            document.getElementById('goblin-target-label').textContent = `틀린 항목: ${label}`;
+            document.getElementById('goblin-hint-text').innerHTML = hint;
+
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGoblinModal() {
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            if (state.lastFocusedInputId) {
+                const target = document.getElementById(state.lastFocusedInputId);
+                if (target) {
+                    target.focus();
+                    target.select();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const goblinModal = document.getElementById('goblin-modal');
+            if (!goblinModal.classList.contains('hidden')) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    e.preventDefault();
+                    closeGoblinModal();
+                }
+            }
+        });
+
+        // ==========================================
+        // 6. 경험치(XP), 진화, 도감, 인증서 관리
+        // ==========================================
+        function grantStageClear(stageId) {
+            const stageInfo = STAGE_LIST.find(s => s.id === stageId);
+            if (!stageInfo) return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+
+            const stageObj = stageId === 0 ? null : state[`s${stageId}`];
+            const isFirstTime = !state.clearedStages.has(stageId);
+
+            // 이미 클리어한 스테이지에서 새로운 문제를 생성하지 않고 정답 확인 버튼만 연타할 때 XP 중복 지급 차단
+            if (!isFirstTime && (!stageObj || stageObj.rewardClaimed)) {
+                playSound('correct');
+                return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+            }
+
+            state.clearedStages.add(stageId);
+            if (stageObj) stageObj.rewardClaimed = true;
+
+            const gainedXp = isFirstTime ? stageInfo.xp : 20;
+            state.xp += gainedXp;
+
+            let newStageObj = EVOLUTION_STAGES[0];
+            for (const st of EVOLUTION_STAGES) {
+                if (state.xp >= st.minXp) {
+                    newStageObj = st;
+                }
+            }
+
+            const didEvolve = newStageObj.level > state.currentLevel;
+            state.currentLevel = newStageObj.level;
+
+            updateHUD();
+            renderTabs();
+
+            if (didEvolve) {
+                playSound('evolve');
+                document.getElementById('evo-svg-box').innerHTML = getTongsamonSVG(newStageObj.level);
+                document.getElementById('evo-new-name').textContent = newStageObj.name;
+                document.getElementById('evo-new-desc').textContent = newStageObj.desc;
+                const evoModal = document.getElementById('evo-modal');
+                evoModal.classList.remove('hidden');
+                evoModal.classList.add('flex');
+            } else {
+                playSound('clear');
+            }
+
+            saveProgress();
+            return { isFirstTime, gainedXp, alreadyClaimed: false };
+        }
+
+        function closeEvoModal() {
+            const evoModal = document.getElementById('evo-modal');
+            evoModal.classList.add('hidden');
+            evoModal.classList.remove('flex');
+        }
+
+        function updateHUD() {
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const nextEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel + 1);
+
+            document.getElementById('hud-avatar').innerHTML = getTongsamonSVG(state.currentLevel);
+            document.getElementById('hud-stage-name').textContent = curEvo.name;
+
+            if (nextEvo) {
+                document.getElementById('xp-text').textContent = `${state.xp} / ${nextEvo.minXp} XP`;
+                const prevMin = curEvo.minXp;
+                const pct = Math.min(100, Math.max(5, ((state.xp - prevMin) / (nextEvo.minXp - prevMin)) * 100));
+                document.getElementById('xp-bar').style.width = `${pct}%`;
+            } else {
+                document.getElementById('xp-text').textContent = `${state.xp} XP (MAX!)`;
+                document.getElementById('xp-bar').style.width = '100%';
+            }
+        }
+
+        function openDexModal() {
+            const listEl = document.getElementById('dex-list');
+            listEl.innerHTML = EVOLUTION_STAGES.map(st => {
+                const unlocked = state.xp >= st.minXp;
+                return `
+                <div class="flex items-center gap-4 p-3.5 rounded-2xl border-2 ${unlocked ? 'bg-white border-amber-400 shadow-sm' : 'bg-slate-100 border-slate-300 opacity-70'}">
+                    <div class="w-20 h-20 rounded-2xl border-2 ${unlocked ? 'bg-yellow-50 border-amber-400' : 'bg-slate-200 border-slate-300'} flex items-center justify-center shrink-0 p-1">
+                        ${unlocked ? getTongsamonSVG(st.level) : '<span class="text-3xl font-game text-slate-400">?</span>'}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-game text-lg ${unlocked ? 'text-amber-950' : 'text-slate-500'}">
+                                ${unlocked ? st.name : `Lv.${st.level} 미개방 통사몬`}
+                            </span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${unlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                                ${unlocked ? '해금 완료' : `필요 경험치: ${st.minXp} XP`}
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm mt-1 ${unlocked ? 'text-amber-800' : 'text-slate-500'}">
+                            ${unlocked ? st.desc : '학습 문제를 클리어하고 경험치를 모으면 모습이 공개됩니다!'}
+                        </p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const modal = document.getElementById('dex-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDexModal() {
+            const modal = document.getElementById('dex-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openCertModal() {
+            updateCertPreview();
+            document.getElementById('copy-feedback').classList.add('hidden');
+            document.getElementById('cert-image-msg').className = 'hidden';
+            const modal = document.getElementById('cert-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCertModal() {
+            const modal = document.getElementById('cert-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateCertPreview() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const displayStr = (sid || sname) ? `${sid} ${sname}`.trim() : '미입력 학생';
+
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            document.getElementById('cert-avatar').innerHTML = getTongsamonSVG(state.currentLevel);
+            document.getElementById('cert-student-display').textContent = displayStr;
+            document.getElementById('cert-rank-display').textContent = curEvo.name;
+            document.getElementById('cert-xp-display').textContent = `${state.xp} XP`;
+            document.getElementById('cert-stages-display').textContent = `${state.clearedStages.size} / ${STAGE_LIST.length} 스테이지 완료`;
+
+            const now = new Date();
+            document.getElementById('cert-timestamp').textContent =
+                `발급 일시: ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }
+
+        function copyCertSummary() {
+            const sid = document.getElementById('student-id-input').value.trim() || '학번미입력';
+            const sname = document.getElementById('student-name-input').value.trim() || '이름미입력';
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const text = `[통사몬 기회비용 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료`;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            document.getElementById('copy-feedback').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // [추가] 인증서 이미지(PNG) 저장
+        //  - 화면의 인증서 내용을 캔버스에 다시 그려서 PNG로 내려받음 (외부 라이브러리 없음)
+        //  - 다운로드가 막힌 환경(일부 태블릿·앱 내 브라우저)을 위해 미리보기 이미지도 함께 보여 줌
+        // ==========================================
+        function certFitFont(ctx, text, weightFamily, maxSize, maxWidth) {
+            let size = maxSize;
+            ctx.font = `${weightFamily.replace('{s}', size)}`;
+            while (ctx.measureText(text).width > maxWidth && size > 16) {
+                size -= 2;
+                ctx.font = `${weightFamily.replace('{s}', size)}`;
+            }
+            return size;
+        }
+        function certRoundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function certLoadSvg(svgEl) {
+            return new Promise((resolve) => {
+                if (!svgEl) return resolve(null);
+                const clone = svgEl.cloneNode(true);
+                clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                clone.setAttribute('width', '480');
+                clone.setAttribute('height', '480');
+                clone.removeAttribute('class');
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+            });
+        }
+        async function downloadCertImage() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const msg = document.getElementById('cert-image-msg');
+            if (!sid || !sname) {
+                msg.textContent = '⚠️ 학번과 이름을 먼저 입력해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                document.getElementById(!sid ? 'student-id-input' : 'student-name-input').focus();
+                return;
+            }
+            updateCertPreview();
+            // [추가] PC: 저장한 인증서를 새 창으로 바로 보여 줌.
+            //  버튼을 누른 순간 창을 먼저 열어 둬야 팝업 차단에 걸리지 않음
+            let certWin = null;
+            if (!certIsMobile()) {
+                try {
+                    certWin = window.open('', '_blank');
+                    if (certWin) certWin.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40vh;color:#B45309;font-weight:bold">⏳ 인증서 이미지를 만드는 중...</p>');
+                } catch (e) { certWin = null; }
+            }
+            msg.textContent = '⏳ 인증서 이미지를 만드는 중...';
+            msg.className = 'text-center text-xs font-bold text-amber-700 mt-2';
+
+            // 웹 글꼴(Jua, Noto Sans KR)이 준비될 때까지 잠깐 기다림 (최대 2초)
+            try {
+                await Promise.race([
+                    Promise.all([
+                        document.fonts.load('64px Jua', '은지몬통사몬인증서'),
+                        document.fonts.load('700 36px "Noto Sans KR"', '트레이너달성등급'),
+                        document.fonts.load('900 40px "Noto Sans KR"', '스테이지완료')
+                    ]),
+                    new Promise(r => setTimeout(r, 2000))
+                ]);
+            } catch (e) { /* 글꼴을 못 불러와도 기본 글꼴로 계속 */ }
+
+            const area = document.getElementById('cert-card-area');
+            const subtitle = area.querySelector('div').textContent.trim();
+            const title = area.querySelector('h4').textContent.trim();
+            const rows = [
+                ['트레이너', document.getElementById('cert-student-display').textContent, '#451A03'],
+                ['달성 등급', document.getElementById('cert-rank-display').textContent, '#EA580C'],
+                ['획득 경험치', document.getElementById('cert-xp-display').textContent, '#451A03'],
+                ['클리어 현황', document.getElementById('cert-stages-display').textContent, '#047857']
+            ];
+            const stamp = document.getElementById('cert-timestamp').textContent;
+            const allClear = state.clearedStages.size === STAGE_LIST.length;
+            const avatarImg = await certLoadSvg(document.querySelector('#cert-avatar svg'));
+
+            const W = 1080, H = 1350;
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const SANS = '"Noto Sans KR", sans-serif';
+            const GAME = 'Jua, "Noto Sans KR", sans-serif';
+
+            // 배경 + 테두리
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#FEF9C3'); bg.addColorStop(0.5, '#FFFBEB'); bg.addColorStop(1, '#FEF08A');
+            certRoundRect(ctx, 30, 30, W - 60, H - 60, 56);
+            ctx.fillStyle = bg; ctx.fill();
+            ctx.lineWidth = 18; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            certRoundRect(ctx, 66, 66, W - 132, H - 132, 36);
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            // 영어 부제
+            certFitFont(ctx, subtitle.toUpperCase(), `800 {s}px ${SANS}`, 28, 860);
+            ctx.fillStyle = '#B45309';
+            ctx.fillText(subtitle.toUpperCase(), W / 2, 150);
+            // 제목
+            certFitFont(ctx, title, `{s}px ${GAME}`, 66, 880);
+            ctx.fillStyle = '#451A03';
+            ctx.fillText(title, W / 2, 230);
+
+            // 캐릭터
+            const cx = W / 2, cy = 440, r = 150;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.lineWidth = 9; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            if (avatarImg) ctx.drawImage(avatarImg, cx - 120, cy - 120, 240, 240);
+
+            // 정보 상자
+            const bx = 110, by = 640, bw = W - 220, rowH = 104;
+            certRoundRect(ctx, bx, by, bw, rowH * rows.length + 40, 28);
+            ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fill();
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+            rows.forEach(([label, value, color], i) => {
+                const y = by + 20 + rowH * i + rowH / 2;
+                ctx.textAlign = 'left';
+                ctx.font = `700 34px ${SANS}`; ctx.fillStyle = '#B45309';
+                ctx.fillText(label, bx + 44, y);
+                ctx.textAlign = 'right';
+                certFitFont(ctx, value, `900 {s}px ${SANS}`, 40, bw - 300);
+                ctx.fillStyle = color;
+                ctx.fillText(value, bx + bw - 44, y);
+                if (i < rows.length - 1) {
+                    ctx.beginPath(); ctx.moveTo(bx + 36, y + rowH / 2); ctx.lineTo(bx + bw - 36, y + rowH / 2);
+                    ctx.lineWidth = 2; ctx.strokeStyle = '#FEF3C7'; ctx.stroke();
+                }
+            });
+
+            // 발급 일시
+            ctx.textAlign = 'center';
+            ctx.font = `500 28px ${SANS}`; ctx.fillStyle = '#B45309';
+            ctx.fillText(stamp, W / 2, by + rowH * rows.length + 110);
+
+            // 모든 스테이지 클리어 시 도장
+            if (allClear) {
+                ctx.save();
+                ctx.translate(W - 205, 480); ctx.rotate(-0.25);
+                ctx.globalAlpha = 0.85;
+                ctx.beginPath(); ctx.arc(0, 0, 92, 0, Math.PI * 2);
+                ctx.lineWidth = 8; ctx.strokeStyle = '#DC2626'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 78, 0, Math.PI * 2);
+                ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#DC2626';
+                ctx.font = `44px ${GAME}`; ctx.fillText('마스터', 0, -14);
+                ctx.font = `30px ${GAME}`; ctx.fillText('달성!', 0, 30);
+                ctx.restore();
+            }
+
+            const safe = s => s.replace(/[\\/:*?"<>|\s]+/g, '_');
+            const fileName = `${safe(title)}_${safe(sid)}_${safe(sname)}.png`;
+            let url;
+            try { url = canvas.toDataURL('image/png'); } catch (e) {
+                if (certWin) certWin.close();
+                msg.textContent = '😢 이미지를 만들지 못했어요. 결과 텍스트 복사를 이용해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                return;
+            }
+            // [수정] 스마트폰·태블릿 대응: 바로 다운로드 대신 저장 창을 띄움
+            const blob = await new Promise(res => { try { canvas.toBlob(res, 'image/png'); } catch (e) { res(null); } });
+            certImageData = { url, blob, fileName };
+            document.getElementById('cert-image-preview').src = url;
+
+            const ua = navigator.userAgent || '';
+            const isMobile = certIsMobile();
+            const isInApp = /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps|Whale\/.*Mobile.*inapp/i.test(ua);
+            let canShareFile = false;
+            try {
+                canShareFile = !!(blob && navigator.canShare && navigator.share &&
+                    navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] }));
+            } catch (e) { canShareFile = false; }
+
+            const guide = document.getElementById('cert-share-guide');
+            const shareBtn = document.getElementById('cert-share-btn');
+            shareBtn.classList.toggle('hidden', !canShareFile || isInApp);
+            document.getElementById('cert-external-btn').classList.toggle('hidden', !(isMobile && isInApp));
+            if (!isMobile) {
+                guide.innerHTML = `✅ <b>${fileName}</b> 파일을 내려받았어요.<br>
+                    <span class="text-xs text-slate-500">저장 위치: <b>다운로드</b> 폴더 (크롬에서 <b>Ctrl+J</b>, 맥은 <b>⌘+Shift+J</b>를 누르면 바로 보여요)</span><br>클래스룸/패들렛에 올려 주세요.`;
+                downloadCertFile();  // PC는 지금처럼 바로 다운로드
+                showCertInWindow(certWin, url, fileName);  // [추가] 저장한 이미지를 새 창으로
+            } else if (isInApp) {
+                // [수정] 카카오톡·네이버 앱 안 브라우저는 다운로드·공유가 막혀 있음 → 크롬/사파리로 옮겨 저장
+                guide.innerHTML = `⚠️ <span class="text-rose-600">카카오톡·네이버 앱 안에서는 사진 저장이 막혀 있어요.</span><br>
+                    아래 <span class="text-sky-700">파란 버튼</span>을 누르면 크롬(아이폰은 사파리)에서 열려요.<br>
+                    <span class="text-xs text-slate-500">경험치·클리어 기록은 그대로 넘어가요. 열린 화면에서 학번·이름을 다시 쓰고 '이미지로 저장'을 눌러 주세요.</span>`;
+            } else if (canShareFile) {
+                guide.innerHTML = `📲 아래 초록 버튼 → <span class="text-emerald-700">'이미지 저장'</span>(아이폰) 또는 <span class="text-emerald-700">'갤러리/사진'</span>(안드로이드)을 고르세요.<br>
+                    <span class="text-xs text-slate-500">클래스룸·카카오톡으로 바로 보내도 돼요. 안 되면 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            } else {
+                guide.innerHTML = `👆 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> '이미지 저장' 또는 '이미지 다운로드'를 누르세요.`;
+            }
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.remove('hidden'); ov.classList.add('flex');
+            msg.className = 'hidden';
+            if (typeof playSound === 'function') playSound('correct');
+        }
+
+        let certImageData = null;
+        // [추가] Esc로 저장 창 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCertImageOverlay();
+        });
+        function closeCertImageOverlay() {
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.add('hidden'); ov.classList.remove('flex');
+        }
+        // 공유 메뉴 열기 (버튼을 누른 순간 바로 호출해야 휴대폰에서 막히지 않음)
+        function shareCertImage() {
+            if (!certImageData || !certImageData.blob) return downloadCertFile();
+            const file = new File([certImageData.blob], certImageData.fileName, { type: 'image/png' });
+            navigator.share({ files: [file], title: certImageData.fileName })
+                .then(() => {
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `✅ 완료! '이미지 저장'을 골랐다면 <span class="text-emerald-700">사진 앱(갤러리)의 최근 항목</span>에 있어요.<br>
+                        <span class="text-xs text-slate-500">위 이미지를 확인하고 클래스룸/패들렛에 올려 주세요.</span>`;
+                })
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return; // 학생이 공유 창을 닫은 경우
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `👆 공유가 안 되는 기기예요. 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> 저장해 주세요.`;
+                });
+        }
+        // [추가] 학습 기록을 주소에 담아 외부 브라우저(크롬/사파리)로 옮겨 열기
+        const CERT_MOVE_PARAM = 'eunjimon-move';
+        function certEncode(obj) {
+            const bin = unescape(encodeURIComponent(JSON.stringify(obj)));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function certDecode(str) {
+            const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+        }
+        function certOpenExternal() {
+            saveProgress();
+            let saved = null;
+            try { saved = localStorage.getItem(SAVE_KEY); } catch (e) { }
+            // [수정] 개인정보 보호: 학번·이름은 주소에 싣지 않음(학습 기록만 넘김). 학생이 크롬에서 다시 입력
+            const payload = certEncode({ k: SAVE_KEY, d: saved });
+            const base = location.origin + location.pathname;
+            const ua = navigator.userAgent || '';
+            const isAndroid = /Android/i.test(ua);
+            if (/KAKAOTALK/i.test(ua)) {
+                // 카카오톡 공식 '외부 브라우저로 열기' 주소
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(`${base}#${CERT_MOVE_PARAM}=${payload}`);
+            } else if (isAndroid) {
+                // 안드로이드: 크롬 앱으로 바로 열기
+                const noScheme = `${base}?${CERT_MOVE_PARAM}=${payload}`.replace(/^https?:\/\//, '');
+                location.href = `intent://${noScheme}#Intent;scheme=${location.protocol.replace(':', '')};package=com.android.chrome;end`;
+            } else {
+                // 아이폰(카카오톡 외 앱): 사파리로 열기 (iOS 17 이상)
+                location.href = `x-safari-${base}#${CERT_MOVE_PARAM}=${payload}`;
+            }
+            setTimeout(() => {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `🔄 안 열리면 화면 오른쪽 위/아래 <b>⋮ 또는 ⋯</b> → <b>'다른 브라우저로 열기'</b>를 눌러 주세요.<br>
+                    <span class="text-xs text-slate-500">이 경우 학습 기록은 넘어가지 않으니, 열린 화면에서 같은 휴대폰으로 다시 이어서 풀어야 해요.</span>`;
+            }, 2500);
+        }
+        // 크롬/사파리에서 열렸을 때 넘어온 기록 받기 (기존 기록보다 경험치가 같거나 많을 때만 덮어씀)
+        function certImportFromUrl() {
+            try {
+                const re = new RegExp('[#?&]' + CERT_MOVE_PARAM + '=([A-Za-z0-9_-]+)');
+                const m = (location.hash + '&' + location.search).match(re);
+                if (!m) return null;
+                history.replaceState(null, '', location.pathname);  // 주소창에서 기록 지우기
+                const p = certDecode(m[1]);
+                if (p.k !== SAVE_KEY) return null;
+                if (p.d) {
+                    const inXp = Number(JSON.parse(p.d).xp) || 0;
+                    const cur = localStorage.getItem(SAVE_KEY);
+                    const curXp = cur ? (Number(JSON.parse(cur).xp) || 0) : -1;
+                    if (inXp >= curXp) localStorage.setItem(SAVE_KEY, p.d);
+                }
+                return true;
+            } catch (e) { return null; }
+        }
+        function certIsMobile() {
+            const ua = navigator.userAgent || '';
+            return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+        // [추가] 저장한 인증서를 새 창(탭)에 크게 보여 줌. 창이 막혔으면 저장 창의 미리보기로 대신함
+        function showCertInWindow(win, url, fileName) {
+            if (!win || win.closed) return;
+            try {
+                const d = win.document;
+                d.open();
+                d.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title></title></head>
+                    <body style="margin:0;background:#FFFBEB;font-family:'Noto Sans KR',sans-serif;text-align:center;padding:16px;">
+                    <p style="color:#047857;font-weight:800;margin:6px 0;">✅ 다운로드 폴더에 저장한 인증서예요</p>
+                    <p style="color:#78716C;font-size:13px;margin:0 0 12px;"></p>
+                    <img alt="학습 완료 인증서" style="max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.18);">
+                    </body></html>`);
+                d.close();
+                d.title = fileName;
+                d.querySelectorAll('p')[1].textContent = fileName;  // 파일 이름은 글자로만 넣음
+                d.querySelector('img').src = url;
+                win.focus();
+            } catch (e) { /* 새 창이 막히면 저장 창 미리보기로 충분 */ }
+        }
+        function downloadCertFile() {
+            if (!certImageData) return;
+            if (certIsMobile()) {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `💾 다운로드했어요! 아이폰·아이패드는 <span class="text-emerald-700">파일 앱 → 다운로드</span>,
+                    안드로이드는 <span class="text-emerald-700">내 파일 → 다운로드</span>(갤러리의 Download 앨범)에 있어요.<br>
+                    <span class="text-xs text-slate-500">파일이 안 보이면 위 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            }
+            const { url, blob, fileName } = certImageData;
+            const a = document.createElement('a');
+            a.href = blob ? URL.createObjectURL(blob) : url; a.download = fileName;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            if (blob) setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        }
+
+        // ==========================================
+        // 7. 스테이지 탭 및 공통 UI 헬퍼
+        // ==========================================
+        function renderTabs() {
+            const tabsEl = document.getElementById('stage-tabs');
+            tabsEl.innerHTML = STAGE_LIST.map(st => {
+                const isActive = state.currentStage === st.id;
+                const isCleared = state.clearedStages.has(st.id);
+                return `
+                <button onclick="switchStage(${st.id})" class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition flex items-center gap-1.5 border-2 ${
+                    isActive
+                        ? 'bg-amber-500 text-white border-amber-700 shadow-sm'
+                        : isCleared
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400 hover:bg-emerald-200'
+                            : 'bg-white text-amber-900 border-amber-300 hover:bg-yellow-50'
+                }">
+                    <span>${isCleared ? '✅' : '⚡'}</span>
+                    <span>${st.short}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function switchStage(stageId) {
+            state.currentStage = stageId;
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleHelperMemo() {
+            state.showHelperMemo = !state.showHelperMemo;
+            renderCurrentStage();
+        }
+
+        function rerollStage(stageId) {
+            clearStageInputs(`s${stageId}-`);
+            if (stageId === 1) state.s1 = createStage1Data(true);
+            if (stageId === 2) state.s2 = createStage2Data(true);
+            if (stageId === 3) state.s3 = createStage3Data(true);
+            if (stageId === 4) {
+                state.s4 = createStage4Data(true);
+                clearStageInputs('s5-');
+                state.s5 = createStage5Data(true);
+            }
+            if (stageId === 5) {
+                clearStageInputs('s4-');
+                state.s4 = createStage4Data(true);
+                state.s5 = createStage5Data(true);
+            }
+            playSound('correct');
+            renderCurrentStage();
+        }
+
+        function resetStageToOriginal(stageId) {
+            clearStageInputs(`s${stageId}-`);
+            if (stageId === 1) state.s1 = createStage1Data(false);
+            if (stageId === 2) state.s2 = createStage2Data(false);
+            if (stageId === 3) state.s3 = createStage3Data(false);
+            if (stageId === 4) state.s4 = createStage4Data(false);
+            if (stageId === 5) state.s5 = createStage5Data(false);
+            renderCurrentStage();
+        }
+
+        function renderStageHeader(stageId, subtitle, allowRandom = true) {
+            const st = STAGE_LIST[stageId];
+            const dataObj = state[`s${stageId}`];
+            const isRand = dataObj && dataObj.isRandom;
+
+            return `
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b-2 border-amber-200 pb-4 mb-5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-amber-400 text-amber-950 font-game text-xs sm:text-sm px-3 py-0.5 rounded-full border border-amber-600">
+                            ${st.short} · 보상 +${st.xp} XP
+                        </span>
+                        ${isRand ? '<span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300">🎲 랜덤 변형 문제</span>' : '<span class="bg-yellow-100 text-amber-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">📄 기본 학습지 문제</span>'}
+                    </div>
+                    <h2 class="font-game text-2xl sm:text-3xl text-amber-950 mt-1.5">${st.title}</h2>
+                    <p class="text-xs sm:text-sm text-amber-800 mt-0.5">${subtitle}</p>
+                </div>
+
+                ${allowRandom ? `
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="rerollStage(${stageId})" class="bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 text-amber-950 font-extrabold text-xs sm:text-sm px-3.5 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition flex items-center gap-1.5">
+                        <span>🎲</span><span>새로운 숫자 생성 (무한 연습)</span>
+                    </button>
+                    ${isRand ? `
+                    <button onclick="resetStageToOriginal(${stageId})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-300 transition">
+                        기본 문제로 복귀
+                    </button>` : ''}
+                </div>` : ''}
+            </div>`;
+        }
+
+        function renderInputGuideBanner(showMemoToggle = true) {
+            return `
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold">
+                    <span class="text-base">💡</span>
+                    <span>마이너스(-)를 포함해 숫자를 입력한 뒤 <kbd class="px-1.5 py-0.5 bg-white border border-amber-400 rounded font-mono text-xs">Enter</kbd>를 누르거나 다음 칸으로 이동하면 즉시 채점됩니다!</span>
+                </div>
+                ${showMemoToggle ? `
+                <button onclick="toggleHelperMemo()" class="px-3 py-1.5 rounded-xl font-bold text-xs border-2 transition ${
+                    state.showHelperMemo
+                        ? 'bg-sky-500 text-white border-sky-700'
+                        : 'bg-white text-sky-800 border-sky-300 hover:bg-sky-50'
+                }">
+                    🧮 ${state.showHelperMemo ? '보조 계산 칸(순가치 메모) 숨기기' : '보조 계산 칸(순가치 메모) 켜기'}
+                </button>` : ''}
+            </div>`;
+        }
+
+        function makeNumInput(id, answer, unit, label, hint) {
+            const saved = state.userInputs[id];
+            const savedVal = saved && saved.value !== undefined ? saved.value : '';
+            let stateClasses = 'border-amber-300 bg-yellow-50/50 focus:bg-white focus:border-amber-500';
+            if (saved && saved.valid === 'true') {
+                stateClasses = 'border-emerald-500 bg-emerald-50 text-emerald-800';
+            } else if (saved && saved.valid === 'false') {
+                stateClasses = 'border-red-500 bg-red-50 text-red-700';
+            }
+
+            return `
+            <div class="flex items-center justify-center gap-1">
+                <input
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    id="${id}"
+                    value="${savedVal}"
+                    data-answer="${answer}"
+                    data-label="${label}"
+                    data-hint="${hint.replace(/"/g, '&quot;')}"
+                    oninput="handleCellInput(this)"
+                    onkeydown="handleCellEnter(event, this)"
+                    onblur="handleCellBlur(this)"
+                    placeholder="?"
+                    class="w-24 sm:w-28 text-center font-extrabold text-sm sm:text-base py-1.5 px-2 rounded-xl border-2 focus:outline-none transition ${stateClasses}"
+                >
+                <span class="text-xs font-bold text-amber-900 shrink-0">${unit}</span>
+            </div>`;
+        }
+
+        // ==========================================
+        // 8. 각 스테이지(Stage 0 ~ 5) 렌더링 및 최종 확인
+        // ==========================================
+        function renderCurrentStage() {
+            const container = document.getElementById('stage-container');
+            switch (state.currentStage) {
+                case 0: container.innerHTML = renderStage0(); break;
+                case 1: container.innerHTML = renderStage1(); break;
+                case 2: container.innerHTML = renderStage2(); break;
+                case 3: container.innerHTML = renderStage3(); break;
+                case 4: container.innerHTML = renderStage4(); break;
+                case 5: container.innerHTML = renderStage5(); break;
+            }
+            saveProgress();   // 화면이 바뀔 때마다(선택·스테이지 이동·🎲·메모 켜기) 저장
+        }
+
+        // --- STAGE 0: 핵심 공식 ---
+        function renderStage0() {
+            const questions = [
+                {
+                    key: 'explicit',
+                    term: '명시적 비용',
+                    options: [
+                        '어떤 선택을 함으로써 직접 화폐로 지출하는 비용',
+                        '선택으로 인해 포기한 대안들 중 가장 가치가 큰 것',
+                        '이미 지출하여 회수할 수 없는 비용'
+                    ],
+                    correct: 0,
+                    hint: '명시적 비용은 지갑에서 직접 돈으로 빠져나가는 비용(예: 입장료, 수강료, 대여료)을 말합니다!'
+                },
+                {
+                    key: 'implicit',
+                    term: '암묵적 비용',
+                    options: [
+                        '직접 현금으로 지불한 모든 비용의 합계',
+                        '선택으로 인해 포기한 대안의 순가치(편익 - 명시적 비용)',
+                        '편익에서 기회비용을 뺀 값'
+                    ],
+                    correct: 1,
+                    hint: '암묵적 비용은 다른 선택을 했더라면 얻을 수 있었던 <strong>순가치(편익 - 명시적 비용)</strong> 중 가장 큰 값입니다!'
+                },
+                {
+                    key: 'opp',
+                    term: '기회비용',
+                    options: [
+                        '명시적 비용 - 암묵적 비용',
+                        '명시적 비용 + 암묵적 비용',
+                        '편익 + 명시적 비용'
+                    ],
+                    correct: 1,
+                    hint: '기회비용은 어떤 선택을 위해 포기한 모든 가치, 즉 <strong>명시적 비용 + 암묵적 비용</strong>입니다!'
+                },
+                {
+                    key: 'net',
+                    term: '순편익',
+                    options: [
+                        '편익 - 기회비용',
+                        '기회비용 - 편익',
+                        '암묵적 비용 - 명시적 비용'
+                    ],
+                    correct: 0,
+                    hint: '순편익은 내가 얻는 만족(편익)에서 총 비용(기회비용)을 뺀 값, 즉 <strong>편익 - 기회비용</strong>입니다!'
+                },
+                {
+                    key: 'sunk',
+                    term: '매몰 비용',
+                    options: [
+                        '앞으로 선택을 바꾸면 되돌려 받을 수 있는 보증금',
+                        '이미 지출하여 어떤 선택을 하든 회수할 수 없는 비용',
+                        '기회비용에 반드시 포함시켜야 하는 비용'
+                    ],
+                    correct: 1,
+                    hint: '매몰 비용은 이미 써버려서 되돌릴 수 없는 비용이므로, 현재의 합리적 선택을 할 때는 <strong>고려하지 않아야</strong> 합니다!'
+                }
+            ];
+
+            const cardsHtml = questions.map((q, idx) => {
+                const selected = state.s0Answers[q.key];
+                return `
+                <div class="bg-yellow-50/70 border-2 border-amber-300 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-game text-lg sm:text-xl text-amber-950">${idx + 1}. ${q.term}</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${q.options.map((opt, oIdx) => {
+                            const isPicked = selected === oIdx;
+                            return `
+                            <button onclick="selectS0Option('${q.key}', ${oIdx}, ${q.correct}, '${q.term}', '${q.hint}')"
+                                class="text-left px-3.5 py-2.5 rounded-xl border-2 text-xs sm:text-sm font-bold transition ${
+                                    isPicked
+                                        ? 'bg-emerald-100 border-emerald-500 text-emerald-950'
+                                        : 'bg-white border-amber-200 hover:border-amber-400 text-amber-900'
+                                }">
+                                ${isPicked ? '✅ ' : '⬜ '} ${opt}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+
+            return `
+            ${renderStageHeader(0, '학습지 첫 페이지의 기회비용 핵심 공식을 완성해 보세요!', false)}
+            <div class="space-y-3.5">${cardsHtml}</div>
+            <div id="s0-result" class="mt-5"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="checkStage0Complete()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    공식 마스터 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS0Option(key, pickedIdx, correctIdx, term, hint) {
+            if (pickedIdx === correctIdx) {
+                state.s0Answers[key] = pickedIdx;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(term, hint);
+            }
+        }
+
+        function checkStage0Complete() {
+            const keys = ['explicit', 'implicit', 'opp', 'net', 'sunk'];
+            const allDone = keys.every(k => state.s0Answers[k] !== undefined);
+            const resEl = document.getElementById('s0-result');
+            if (!allDone) {
+                showGoblinModal('미완성 공식 항목', '5가지 핵심 개념의 올바른 정의를 모두 선택해야 다음 단계로 넘어갈 수 있다!');
+                return;
+            }
+            const reward = grantStageClear(0);
+            resEl.innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 0 클리어! (+${reward.gainedXp} XP 획득)</p>
+                <p class="text-sm text-emerald-700 mt-1">기회비용 공식을 완벽하게 익혔습니다! 이제 실전 문제 1번으로 떠나볼까요?</p>
+                <button onclick="switchStage(1)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 1 (문제 1번) 풀러 가기 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 1: 문제 1번 (아르바이트 vs 영화 관람) ---
+        function renderStage1() {
+            const d = state.s1;
+            const memoRow = state.showHelperMemo ? `
+            <tr class="bg-sky-50/90 border-b border-sky-200">
+                <td class="p-3 font-bold text-sky-900 text-xs sm:text-sm">🧮 [메모] 순가치<br><span class="text-[11px] font-normal">(편익 - 명시적 비용)</span></td>
+                <td class="p-3">${makeNumInput('s1-memo-a', d.netValA, '원', '아르바이트 순가치', `아르바이트의 편익(${d.bA.toLocaleString()}원)에서 명시적 비용(${d.cA.toLocaleString()}원)을 빼보세요!`)}</td>
+                <td class="p-3">${makeNumInput('s1-memo-b', d.netValB, '원', '영화 관람 순가치', `영화 관람의 편익(${d.bB.toLocaleString()}원)에서 명시적 비용(${d.cB.toLocaleString()}원)을 빼보세요!`)}</td>
+            </tr>` : '';
+
+            return `
+            ${renderStageHeader(1, '갑은 토요일 오후에 아르바이트와 영화 관람 중 하나를 선택하려고 한다. (동시 선택 불가)', true)}
+            ${renderInputGuideBanner(true)}
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm">
+                <table class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 font-extrabold text-sm sm:text-base border-b-2 border-amber-400">
+                            <th class="p-3 w-1/3">구분</th>
+                            <th class="p-3 w-1/3">${d.nameA}</th>
+                            <th class="p-3 w-1/3">${d.nameB}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 text-sm sm:text-base">
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">편익</td>
+                            <td class="p-3 font-extrabold text-amber-900">${d.bA.toLocaleString()}원</td>
+                            <td class="p-3 font-extrabold text-amber-900">${d.bB.toLocaleString()}원</td>
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">명시적 비용</td>
+                            <td class="p-3 font-extrabold text-amber-900">${d.cA.toLocaleString()}원</td>
+                            <td class="p-3 font-extrabold text-amber-900">${d.cB.toLocaleString()}원</td>
+                        </tr>
+                        ${memoRow}
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">암묵적 비용</td>
+                            <td class="p-3">${makeNumInput('s1-imp-a', d.impA, '원', '(가) 아르바이트의 암묵적 비용', `아르바이트를 선택하면 <strong>영화 관람</strong>을 포기해야 해! 영화 관람의 순가치(편익 ${d.bB.toLocaleString()}원 - 명시적 비용 ${d.cB.toLocaleString()}원)가 얼마인지 계산해 봐!`)}</td>
+                            <td class="p-3">${makeNumInput('s1-imp-b', d.impB, '원', '(나) 영화 관람의 암묵적 비용', `영화 관람을 선택하면 <strong>아르바이트</strong>를 포기해야 해! 아르바이트의 순가치(편익 ${d.bA.toLocaleString()}원 - 명시적 비용 ${d.cA.toLocaleString()}원)가 얼마인지 계산해 봐!`)}</td>
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">기회비용</td>
+                            <td class="p-3">${makeNumInput('s1-opp-a', d.oppA, '원', '(다) 아르바이트의 기회비용', `기회비용 = <strong>명시적 비용(${d.cA.toLocaleString()}원) + 암묵적 비용(${d.impA.toLocaleString()}원)</strong>이야! 두 값을 더해 봐!`)}</td>
+                            <td class="p-3">${makeNumInput('s1-opp-b', d.oppB, '원', '(라) 영화 관람의 기회비용', `기회비용 = <strong>명시적 비용(${d.cB.toLocaleString()}원) + 암묵적 비용(${d.impB.toLocaleString()}원)</strong>이야! 두 값을 더해 봐!`)}</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">순편익</td>
+                            <td class="p-3">${makeNumInput('s1-net-a', d.netA, '원', '(마) 아르바이트의 순편익', `순편익 = <strong>편익(${d.bA.toLocaleString()}원) - 기회비용(${d.oppA.toLocaleString()}원)</strong>이야! 음수(-)가 나올 수도 있으니 정확히 빼 보자!`)}</td>
+                            <td class="p-3">${makeNumInput('s1-net-b', d.netB, '원', '(바) 영화 관람의 순편익', `순편익 = <strong>편익(${d.bB.toLocaleString()}원) - 기회비용(${d.oppB.toLocaleString()}원)</strong>이야! 음수(-)가 나올 수도 있으니 정확히 빼 보자!`)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 합리적 선택 고르기 -->
+            <div class="mt-5 bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2.5">② 갑의 합리적인 선택은 무엇인가요?</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="selectS1Choice('A')" class="py-3 px-4 rounded-xl font-extrabold text-sm sm:text-base border-2 transition ${
+                        d.userChoice === 'A' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                    }">
+                        💼 아르바이트
+                    </button>
+                    <button onclick="selectS1Choice('B')" class="py-3 px-4 rounded-xl font-extrabold text-sm sm:text-base border-2 transition ${
+                        d.userChoice === 'B' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                    }">
+                        🎬 영화 관람
+                    </button>
+                </div>
+            </div>
+
+            <div id="s1-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage1()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 1 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS1Choice(choice) {
+            state.s1.userChoice = choice;
+            if (choice !== state.s1.best) {
+                showGoblinModal('합리적인 선택', '순편익(편익 - 기회비용)이 <strong>0보다 크면서 가장 큰 대안</strong>을 선택해야 합리적이지!');
+            } else {
+                playSound('correct');
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage1() {
+            const ids = ['s1-imp-a', 's1-imp-b', 's1-opp-a', 's1-opp-b', 's1-net-a', 's1-net-b'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '표의 모든 빈칸에 숫자를 채워 넣어야 한다!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            if (state.s1.userChoice !== state.s1.best) {
+                showGoblinModal('합리적인 선택', '②번 합리적인 선택 버튼을 올바르게 골라보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(1);
+            document.getElementById('s1-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 1 클리어! (+${reward.gainedXp} XP 획득)</p>
+                <p class="text-sm text-emerald-700 mt-1">완벽합니다! 다음은 대안이 3개인 여행지 선택 문제입니다.</p>
+                <button onclick="switchStage(2)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 2 (문제 2번) 풀러 가기 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 2: 문제 2번 (여행지 3곳 선택) ---
+        function renderStage2() {
+            const d = state.s2;
+            const memoRow = state.showHelperMemo ? `
+            <tr class="bg-sky-50/90 border-b border-sky-200">
+                <td class="p-2.5 font-bold text-sky-900 text-xs sm:text-sm">🧮 [메모] 순가치<br><span class="text-[11px] font-normal">(편익 - 비용)</span></td>
+                ${d.items.map((it, i) => `
+                    <td class="p-2.5">${makeNumInput(`s2-memo-${i}`, it.netVal, '만원', `${it.name} 순가치`, `${it.name}의 편익(${it.b}만원)에서 비용(${it.c}만원)을 뺀 순가치를 적어 보세요!`)}</td>
+                `).join('')}
+            </tr>` : '';
+
+            return `
+            ${renderStageHeader(2, '세 가지 여행지 중 하나만 선택할 때, 빈칸을 채우고 합리적 선택을 고르세요. (단위: 만원)', true)}
+            ${renderInputGuideBanner(true)}
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm">
+                <table class="w-full text-center border-collapse min-w-[520px]">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 font-extrabold text-sm sm:text-base border-b-2 border-amber-400">
+                            <th class="p-3 w-1/4">구분</th>
+                            ${d.items.map(it => `<th class="p-3 w-1/4">${it.name}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 text-sm sm:text-base">
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">편익(만족)</td>
+                            ${d.items.map(it => `<td class="p-3 font-extrabold text-amber-900">${it.b}만원</td>`).join('')}
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">비용(명시적)</td>
+                            ${d.items.map(it => `<td class="p-3 font-extrabold text-amber-900">${it.c}만원</td>`).join('')}
+                        </tr>
+                        ${memoRow}
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">암묵적 비용</td>
+                            ${d.items.map((it, i) => {
+                                const others = d.items.filter((_, idx) => idx !== i);
+                                return `<td class="p-3">${makeNumInput(`s2-imp-${i}`, it.imp, '만원', `${it.name}의 암묵적 비용`, `${it.name}을 선택하면 <strong>${others[0].name}(순가치 ${others[0].netVal}만원)</strong>과 <strong>${others[1].name}(순가치 ${others[1].netVal}만원)</strong>을 포기하게 돼! 둘 중 <strong>더 큰 값</strong>을 적어야 해!`)}</td>`;
+                            }).join('')}
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">기회비용</td>
+                            ${d.items.map((it, i) => `
+                                <td class="p-3">${makeNumInput(`s2-opp-${i}`, it.opp, '만원', `${it.name}의 기회비용`, `${it.name}의 기회비용 = <strong>명시적 비용(${it.c}만원) + 암묵적 비용(${it.imp}만원)</strong>이야!`)}</td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">순편익</td>
+                            ${d.items.map((it, i) => `
+                                <td class="p-3">${makeNumInput(`s2-net-${i}`, it.net, '만원', `${it.name}의 순편익`, `${it.name}의 순편익 = <strong>편익(${it.b}만원) - 기회비용(${it.opp}만원)</strong>이야!`)}</td>
+                            `).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-5 bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2.5">합리적인 선택은 무엇인가요?</p>
+                <div class="grid grid-cols-3 gap-2.5">
+                    ${d.items.map((it, i) => `
+                        <button onclick="selectS2Choice(${i})" class="py-3 px-2 rounded-xl font-extrabold text-xs sm:text-base border-2 transition ${
+                            d.userChoice === i ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                        }">
+                            ✈️ ${it.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div id="s2-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage2()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 2 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS2Choice(idx) {
+            state.s2.userChoice = idx;
+            if (idx !== state.s2.bestIdx) {
+                showGoblinModal('합리적인 선택', '세 여행지 중 <strong>순편익(편익 - 기회비용)이 양수(+)이면서 가장 큰 여행지</strong>를 골라야 한다!');
+            } else {
+                playSound('correct');
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage2() {
+            for (let i = 0; i < 3; i++) {
+                for (const prefix of ['s2-imp-', 's2-opp-', 's2-net-']) {
+                    const el = document.getElementById(prefix + i);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = prefix + i;
+                        showGoblinModal('빈칸 미입력', '표의 모든 빈칸을 빠짐없이 채워 넣어라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+            if (state.s2.userChoice !== state.s2.bestIdx) {
+                showGoblinModal('합리적인 선택', '가장 합리적인 여행지 버튼을 선택해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(2);
+            document.getElementById('s2-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 2 클리어! (+${reward.gainedXp} XP 획득)</p>
+                <p class="text-sm text-emerald-700 mt-1">대안이 3개일 때 암묵적 비용을 구하는 원리를 완벽히 이해했습니다!</p>
+                <button onclick="switchStage(3)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 3 (문제 3번) 풀러 가기 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 3: 문제 3번 (겨울방학 방과후 특강) ---
+        function renderStage3() {
+            const d = state.s3;
+            const memoRow = state.showHelperMemo ? `
+            <tr class="bg-sky-50/90 border-b border-sky-200">
+                <td class="p-2.5 font-bold text-sky-900 text-xs sm:text-sm">🧮 [메모] 순가치<br><span class="text-[11px] font-normal">(편익 - 수강료)</span></td>
+                ${d.items.map((it, i) => `
+                    <td class="p-2.5">${makeNumInput(`s3-memo-${i}`, it.netVal, '만원', `${it.name} 순가치`, `${it.name}의 편익(${it.b}만원)에서 수강료(${it.c}만원)를 뺀 순가치를 적어 보세요!`)}</td>
+                `).join('')}
+            </tr>` : '';
+
+            return `
+            ${renderStageHeader(3, '겨울방학 방과후 수업(테니스·볼링·배드민턴 특강) 중 가장 합리적인 선택을 찾으세요.', true)}
+            ${renderInputGuideBanner(true)}
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm">
+                <table class="w-full text-center border-collapse min-w-[520px]">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 font-extrabold text-sm sm:text-base border-b-2 border-amber-400">
+                            <th class="p-3 w-1/4">구분</th>
+                            ${d.items.map(it => `<th class="p-3 w-1/4">${it.name}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 text-sm sm:text-base">
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">편익</td>
+                            ${d.items.map(it => `<td class="p-3 font-extrabold text-amber-900">${it.b}만원</td>`).join('')}
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">수강료(명시적)</td>
+                            ${d.items.map(it => `<td class="p-3 font-extrabold text-amber-900">${it.c}만원</td>`).join('')}
+                        </tr>
+                        ${memoRow}
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">암묵적 비용</td>
+                            ${d.items.map((it, i) => {
+                                const others = d.items.filter((_, idx) => idx !== i);
+                                return `<td class="p-3">${makeNumInput(`s3-imp-${i}`, it.imp, '만원', `${it.name}의 암묵적 비용`, `${it.name}을 들으면 <strong>${others[0].name}(순가치 ${others[0].netVal}만원)</strong>과 <strong>${others[1].name}(순가치 ${others[1].netVal}만원)</strong>을 포기하게 돼! 둘 중 <strong>더 큰 값</strong>을 적어야 해!`)}</td>`;
+                            }).join('')}
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">기회비용</td>
+                            ${d.items.map((it, i) => `
+                                <td class="p-3">${makeNumInput(`s3-opp-${i}`, it.opp, '만원', `${it.name}의 기회비용`, `${it.name}의 기회비용 = <strong>수강료(${it.c}만원) + 암묵적 비용(${it.imp}만원)</strong>이야!`)}</td>
+                            `).join('')}
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">순편익</td>
+                            ${d.items.map((it, i) => `
+                                <td class="p-3">${makeNumInput(`s3-net-${i}`, it.net, '만원', `${it.name}의 순편익`, `${it.name}의 순편익 = <strong>편익(${it.b}만원) - 기회비용(${it.opp}만원)</strong>이야!`)}</td>
+                            `).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-5 bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2.5">합리적인 선택은 무엇인가요?</p>
+                <div class="grid grid-cols-3 gap-2.5">
+                    ${d.items.map((it, i) => `
+                        <button onclick="selectS3Choice(${i})" class="py-3 px-2 rounded-xl font-extrabold text-xs sm:text-base border-2 transition ${
+                            d.userChoice === i ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                        }">
+                            🏅 ${it.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div id="s3-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage3()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 3 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS3Choice(idx) {
+            state.s3.userChoice = idx;
+            if (idx !== state.s3.bestIdx) {
+                showGoblinModal('합리적인 선택', '세 특강 중 <strong>순편익이 양수(+)이면서 가장 큰 특강</strong>을 선택해야 합리적이지!');
+            } else {
+                playSound('correct');
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage3() {
+            for (let i = 0; i < 3; i++) {
+                for (const prefix of ['s3-imp-', 's3-opp-', 's3-net-']) {
+                    const el = document.getElementById(prefix + i);
+                    if (!el || el.value.trim() === '') {
+                        state.lastFocusedInputId = prefix + i;
+                        showGoblinModal('빈칸 미입력', '표의 모든 빈칸에 숫자를 입력해 보아라!');
+                        return;
+                    }
+                    if (!validateSingleCell(el, false)) return;
+                }
+            }
+            if (state.s3.userChoice !== state.s3.bestIdx) {
+                showGoblinModal('합리적인 선택', '합리적인 선택 버튼을 올바르게 골라보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(3);
+            document.getElementById('s3-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 3 클리어! (+${reward.gainedXp} XP 획득)</p>
+                <p class="text-sm text-emerald-700 mt-1">훌륭합니다! 이제 시험에 꼭 나오는 매몰비용 함정(문제 4번)에 도전하세요!</p>
+                <button onclick="switchStage(4)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 4 (문제 4번) 풀러 가기 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 4: 문제 4번 (매몰비용과 개인방송 vs 회사) ---
+        function renderStage4() {
+            const d = state.s4;
+            return `
+            ${renderStageHeader(4, '제시된 자료를 분석하여 표의 빈칸과 매몰 비용, 합리적 선택을 완성하세요!', true)}
+
+            <!-- 지문 박스 -->
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 mb-5 leading-relaxed text-sm sm:text-base text-amber-950 shadow-inner">
+                <p>
+                    회사원 갑은 취미로 패션 블로그를 운영하고 있다. 갑의 블로그 방문자가 늘어 의류 회사 제품 홍보 제안을 받았다.
+                    이를 계기로 인터넷 개인 방송에 관심이 생겨 <span class="font-black text-red-600 underline decoration-wavy">${d.sunk}만원</span>을 지불하고 방송 운영 방법에 관한 강좌를 수강했다.
+                    현재 인터넷 개인 방송을 운영할 경우, 방송 장비 대여료 <span class="font-black text-blue-700">월 ${d.equip}만원</span>, 편집 비용 <span class="font-black text-blue-700">월 ${d.edit}만원</span>이 필요하고
+                    매월 고정적으로 <span class="font-black text-emerald-700">${d.streamRev}만원</span>의 수입이 예상된다.
+                    갑은 월급이 <span class="font-black text-purple-700">${d.salary}만원</span>인 회사를 그만두고 패션 관련 인터넷 개인 방송을 운영할지 고민 중이다.
+                    <span class="text-xs text-amber-700">(단, 제시된 자료 이외의 다른 조건은 고려하지 않음)</span>
+                </p>
+            </div>
+
+            ${renderInputGuideBanner(false)}
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm">
+                <table class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 font-extrabold text-sm sm:text-base border-b-2 border-amber-400">
+                            <th class="p-3 w-1/3">구분</th>
+                            <th class="p-3 w-1/3">인터넷 개인 방송</th>
+                            <th class="p-3 w-1/3">회사 (유지)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 text-sm sm:text-base">
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">편익(만족)</td>
+                            <td class="p-3">${makeNumInput('s4-b-a', d.bA, '만원', '인터넷 개인 방송의 편익', `개인 방송을 운영할 때 매월 고정적으로 예상되는 수입(${d.streamRev}만원)이 바로 편익이야!`)}</td>
+                            <td class="p-3">${makeNumInput('s4-b-b', d.bB, '만원', '회사의 편익', `회사를 계속 다닐 때 받는 월급(${d.salary}만원)이 바로 편익이야!`)}</td>
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">명시적 비용</td>
+                            <td class="p-3">${makeNumInput('s4-c-a', d.cA, '만원', '인터넷 개인 방송의 명시적 비용', `방송 운영 시 매달 나가는 장비 대여료(${d.equip}만원) + 편집 비용(${d.edit}만원)을 더해 봐! (이미 낸 강좌 수강료 ${d.sunk}만원은 매몰비용이라 제외!)`)}</td>
+                            <td class="p-3">${makeNumInput('s4-c-b', d.cB, '만원', '회사의 명시적 비용', `제시된 자료에서 회사를 계속 다닐 때 추가로 드는 명시적 비용은 <strong>0만원</strong>이야!`)}</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">암묵적 비용</td>
+                            <td class="p-3">${makeNumInput('s4-imp-a', d.impA, '만원', '인터넷 개인 방송의 암묵적 비용', `개인 방송을 선택하면 회사를 그만두어야 하므로, 포기하게 되는 <strong>회사 월급(${d.salary}만원)</strong>이 암묵적 비용이야!`)}</td>
+                            <td class="p-3">${makeNumInput('s4-imp-b', d.impB, '만원', '회사의 암묵적 비용', `회사를 유지하면 개인 방송을 포기해야 해! 개인 방송의 순가치(수입 ${d.streamRev}만원 - 명시적 비용 ${d.cA}만원)가 얼마인지 계산해 봐!`)}</td>
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-bold text-amber-950">기회비용</td>
+                            <td class="p-3">${makeNumInput('s4-opp-a', d.oppA, '만원', '인터넷 개인 방송의 기회비용', `개인 방송의 <strong>명시적 비용(${d.cA}만원) + 암묵적 비용(${d.impA}만원)</strong>을 더해 봐!`)}</td>
+                            <td class="p-3">${makeNumInput('s4-opp-b', d.oppB, '만원', '회사의 기회비용', `회사의 <strong>명시적 비용(0만원) + 암묵적 비용(${d.impB}만원)</strong>을 더해 봐!`)}</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-bold text-amber-950">순편익</td>
+                            <td class="p-3">${makeNumInput('s4-net-a', d.netA, '만원', '인터넷 개인 방송의 순편익', `개인 방송의 <strong>편익(${d.bA}만원) - 기회비용(${d.oppA}만원)</strong>을 계산해 봐!`)}</td>
+                            <td class="p-3">${makeNumInput('s4-net-b', d.netB, '만원', '회사의 순편익', `회사의 <strong>편익(${d.bB}만원) - 기회비용(${d.oppB}만원)</strong>을 계산해 봐!`)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 매몰 비용 & 합리적 선택 -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-red-50 border-2 border-red-300 rounded-2xl p-4">
+                    <p class="font-extrabold text-red-950 text-sm sm:text-base mb-2">• 이 사례에서 매몰 비용은 얼마인가요?</p>
+                    <div class="flex justify-start">
+                        ${makeNumInput('s4-sunk', d.sunk, '만원', '매몰 비용', `이미 지불해서 회수할 수 없는 <strong>방송 운영 방법 강좌 수강료(${d.sunk}만원)</strong>가 바로 매몰 비용이야!`)}
+                    </div>
+                </div>
+
+                <div class="bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4">
+                    <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2">• 갑의 합리적인 선택은 무엇인가요?</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="selectS4Choice('A')" class="py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                            d.userChoice === 'A' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                        }">
+                            🎥 인터넷 개인 방송
+                        </button>
+                        <button onclick="selectS4Choice('B')" class="py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                            d.userChoice === 'B' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                        }">
+                            🏢 회사 유지
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="s4-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage4()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 4 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS4Choice(choice) {
+            state.s4.userChoice = choice;
+            if (choice !== state.s4.best) {
+                showGoblinModal('합리적인 선택', '순편익이 <strong>양수(+)인 대안</strong>을 선택해야 합리적이지! 표의 순편익 행을 다시 확인해 보아라!');
+            } else {
+                playSound('correct');
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage4() {
+            const ids = [
+                's4-b-a', 's4-b-b',
+                's4-c-a', 's4-c-b',
+                's4-imp-a', 's4-imp-b',
+                's4-opp-a', 's4-opp-b',
+                's4-net-a', 's4-net-b',
+                's4-sunk'
+            ];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '표의 모든 빈칸과 매몰 비용 칸을 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            if (state.s4.userChoice !== state.s4.best) {
+                showGoblinModal('합리적인 선택', '갑의 합리적인 선택 버튼을 올바르게 골라보아라!');
+                return;
+            }
+
+            clearStageInputs('s5-');
+            state.s5 = createStage5Data(state.s4.isRandom);
+
+            const reward = grantStageClear(4);
+            document.getElementById('s4-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 4 클리어! (+${reward.gainedXp} XP 획득)</p>
+                <p class="text-sm text-emerald-700 mt-1">대단합니다! 매몰비용을 완벽히 걸러냈습니다. 마지막 내신 추론 보스 스테이지에 도전하세요!</p>
+                <button onclick="switchStage(5)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    마지막: Stage 5 (내신 추론) 풀러 가기 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 5: 내신 실전 대비 조건 변화 추론 ---
+        function renderStage5() {
+            const d = state.s5;
+            return `
+            ${renderStageHeader(5, '고1 내신 킬러 문항 유형! 비용 조건이 바뀔 때 합리적 선택의 변화를 추론해 보세요.', true)}
+
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 mb-5 text-sm sm:text-base text-amber-950 leading-relaxed">
+                <span class="inline-block bg-amber-600 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full mb-2">상황 조건</span>
+                <p>
+                    Stage 4의 갑이 인터넷 개인 방송을 운영할 때 예상 수입은 <strong>월 ${d.streamRev}만원</strong>, 편집 비용은 <strong>월 ${d.edit}만원</strong>이며, 현재 다니는 회사의 월급은 <strong>${d.salary}만원</strong>이다.
+                    갑자기 장비 업체에서 방송 장비 대여료를 기존 월 ${d.oldEquip}만원에서 <strong class="text-red-600 underline">월 ${d.increasedEquip}만원</strong>으로 인상하겠다고 통보했다!
+                </p>
+            </div>
+
+            ${renderInputGuideBanner(false)}
+
+            <div class="space-y-4">
+                <div class="bg-white border-2 border-amber-300 rounded-2xl p-4">
+                    <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2">
+                        ① 장비 대여료가 월 ${d.increasedEquip}만원으로 인상될 때, <strong>인터넷 개인 방송의 순편익</strong>은 얼마가 되나요?
+                    </p>
+                    <div class="flex items-center gap-2">
+                        ${makeNumInput('s5-new-net', d.newNetStream, '만원', '인상 후 인터넷 개인 방송의 순편익', `새로운 명시적 비용 = 장비 대여료(${d.increasedEquip}만원) + 편집 비용(${d.edit}만원) = ${d.increasedEquip + d.edit}만원이야! 여기에 암묵적 비용(회사 월급 ${d.salary}만원)을 더한 기회비용을 수입(${d.streamRev}만원)에서 빼 봐!`)}
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-amber-300 rounded-2xl p-4">
+                    <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2.5">
+                        ② 위 상황에서 갑의 합리적인 선택은 어떻게 바뀌나요?
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button onclick="selectS5Choice('stream')" class="py-3 px-4 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                            d.userChoice === 'stream' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-yellow-50 text-amber-950 border-amber-300 hover:bg-amber-100'
+                        }">
+                            🎥 여전히 인터넷 개인 방송을 운영한다
+                        </button>
+                        <button onclick="selectS5Choice('company')" class="py-3 px-4 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                            d.userChoice === 'company' ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-yellow-50 text-amber-950 border-amber-300 hover:bg-amber-100'
+                        }">
+                            🏢 회사를 계속 다니는 것이 합리적이다
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="s5-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage5()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    최종 보스 스테이지 완료 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS5Choice(choice) {
+            state.s5.userChoice = choice;
+            if (choice !== 'company') {
+                showGoblinModal('조건 변화 추론', `장비 대여료가 오르면서 인터넷 개인 방송의 순편익이 <strong>${state.s5.newNetStream}만원(음수)</strong>이 되어 버렸어! 순편익이 양수(+)인 선택을 골라야지!`);
+            } else {
+                playSound('correct');
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage5() {
+            const el = document.getElementById('s5-new-net');
+            if (!el || el.value.trim() === '') {
+                state.lastFocusedInputId = 's5-new-net';
+                showGoblinModal('빈칸 미입력', '①번 순편익 칸에 숫자를 입력해 보아라!');
+                return;
+            }
+            if (!validateSingleCell(el, false)) return;
+
+            if (state.s5.userChoice !== 'company') {
+                showGoblinModal('조건 변화 추론', '②번 합리적인 선택 버튼을 올바르게 골라보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(5);
+            document.getElementById('s5-result').innerHTML = `
+            <div class="bg-gradient-to-r from-yellow-100 via-emerald-50 to-yellow-100 border-3 border-emerald-500 rounded-2xl p-5 text-center shadow">
+                <p class="font-game text-2xl text-emerald-800">👑 전 스테이지 완전 정복! (+${reward.gainedXp} XP)</p>
+                <p class="text-sm text-emerald-900 mt-1 font-medium">
+                    축하합니다! 고1 통합사회 기회비용과 합리적 선택의 모든 유형을 마스터했습니다.
+                </p>
+                <button onclick="openCertModal()" class="mt-4 bg-amber-600 hover:bg-amber-700 text-white font-game text-base px-6 py-2.5 rounded-xl border-2 border-amber-800 shadow">
+                    🎓 선생님 제출용 학습 인증서 열기
+                </button>
+            </div>`;
+        }
+
+        // ==========================================
+        // 8-2. [추가] 진행 상황 자동 저장 (같은 기기·같은 브라우저)
+        //      XP, 진화 단계, 클리어 기록, 입력한 답, 선택 버튼, 🎲 랜덤 문제 숫자까지 저장
+        // ==========================================
+        const SAVE_KEY = 'tongsamon-opportunity-cost-v1';
+
+        function saveProgress() {
+            try {
+                const data = {
+                    currentStage: state.currentStage,
+                    xp: state.xp,
+                    currentLevel: state.currentLevel,
+                    clearedStages: [...state.clearedStages],
+                    showHelperMemo: state.showHelperMemo,
+                    s0Answers: state.s0Answers,
+                    userInputs: state.userInputs,
+                    s1: state.s1, s2: state.s2, s3: state.s3, s4: state.s4, s5: state.s5
+                };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+            } catch (e) { /* 저장이 막힌 환경(시크릿 창 등)에서는 조용히 넘어감 */ }
+        }
+
+        function loadProgress() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                const stageIds = STAGE_LIST.map(st => st.id);
+                state.currentStage = stageIds.includes(data.currentStage) ? data.currentStage : 0;
+                state.xp = Number(data.xp) || 0;
+                state.currentLevel = Number(data.currentLevel) || 1;
+                state.clearedStages = new Set((data.clearedStages || []).filter(id => stageIds.includes(id)));
+                state.showHelperMemo = !!data.showHelperMemo;
+                state.s0Answers = data.s0Answers || {};
+                state.userInputs = data.userInputs || {};
+                for (let i = 1; i <= 5; i++) {
+                    if (data[`s${i}`] && typeof data[`s${i}`] === 'object') state[`s${i}`] = data[`s${i}`];
+                }
+            } catch (e) {
+                state.xp = 0; state.currentLevel = 1; state.clearedStages = new Set(); state.currentStage = 0;
+                state.s0Answers = {};
+                initAllProblems();
+            }
+        }
+
+        function resetProgress() {
+            if (!confirm('지금까지의 경험치와 풀이 기록을 모두 지우고 처음부터 시작할까요?')) return;
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
+            state.currentStage = 0;
+            state.xp = 0;
+            state.currentLevel = 1;
+            state.clearedStages = new Set();
+            state.showHelperMemo = false;
+            state.s0Answers = {};
+            initAllProblems();
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 9. 앱 초기화
+        // ==========================================
+        window.onload = function () {
+            initAllProblems();
+            const moved = certImportFromUrl();   // [추가] 카카오톡 등에서 넘어온 기록
+            loadProgress();   // [추가] 저장된 진행 상황 불러오기
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            if (moved) {   // [추가] 넘어온 경우 인증서 창을 바로 열어 줌
+                openCertModal();
+                updateCertPreview();
+                const m = document.getElementById('cert-image-msg');
+                m.textContent = '✅ 크롬(인터넷)에서 열렸어요! 학번·이름을 다시 쓰고 [🖼️ 이미지로 저장]을 눌러 주세요.';
+                m.className = 'text-center text-sm font-bold text-emerald-600 mt-2';
+            }
+        };
+    </script>
+</body>
+</html>

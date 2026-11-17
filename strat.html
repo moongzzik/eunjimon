@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>은지몬 - 사회·문화 계층표 분석 마스터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FEFCE8;
+            background-image: radial-gradient(#FDE047 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            color: #422006;
+            overflow-x: hidden;
+        }
+        .font-game {
+            font-family: 'Jua', sans-serif;
+        }
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+            animation: bounceSlow 2.2s infinite ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.75); opacity: 0; }
+            70% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
+        }
+        .glow-gold {
+            animation: pulseGlow 2s infinite;
+        }
+        .cell-hl-stable {
+            background-color: #FEF08A !important;
+            box-shadow: inset 0 0 0 2px #CA8A04;
+        }
+        .cell-hl-up {
+            background-color: #BBF7D0 !important;
+            box-shadow: inset 0 0 0 2px #16A34A;
+        }
+        .cell-hl-down {
+            background-color: #FECACA !important;
+            box-shadow: inset 0 0 0 2px #DC2626;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF9C3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FACC15;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 상단 고정 HUD (트레이너 상태 및 메뉴) -->
+    <header class="sticky top-0 z-30 bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 border-b-4 border-amber-500 shadow-md">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <!-- 왼쪽: 타이틀 & 현재 파트너 은지몬 -->
+            <div class="flex items-center gap-3">
+                <div id="hud-avatar" class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl border-3 border-amber-600 flex items-center justify-center shadow-inner shrink-0 cursor-pointer hover:scale-105 transition" onclick="openDexModal()" title="진화 도감 열기">
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] sm:text-xs font-bold text-amber-900 bg-yellow-100/90 px-2 py-0.5 rounded-full border border-amber-400">
+                            고2 사회·문화 · 표분석 패턴
+                        </span>
+                        <span id="hud-stage-name" class="text-[11px] sm:text-xs font-extrabold text-white bg-amber-600 px-2 py-0.5 rounded-full">
+                            Lv.1 황금빛 은지몬 알
+                        </span>
+                    </div>
+                    <h1 class="text-lg sm:text-2xl font-game text-amber-950 tracking-tight leading-tight mt-0.5">
+                        📊 은지몬 <span class="text-amber-800 text-base sm:text-lg">계층표 분석 마스터</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- 중앙: 경험치(XP) 게이지 -->
+            <div class="flex-1 min-w-[160px] max-w-xs mx-2">
+                <div class="flex justify-between text-xs font-extrabold text-amber-950 mb-1">
+                    <span>경험치 (XP)</span>
+                    <span id="xp-text">0 / 100 XP</span>
+                </div>
+                <div class="w-full h-3.5 bg-amber-100 rounded-full border-2 border-amber-600 overflow-hidden p-0.5">
+                    <div id="xp-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: 5%;"></div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 도감, 인증서, 사운드 버튼 -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="openDexModal()" class="bg-white hover:bg-yellow-50 text-amber-950 font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>📖</span><span>진화도감</span>
+                </button>
+                <button onclick="openCertModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-2 rounded-xl border-2 border-amber-800 shadow-sm active:translate-y-0.5 transition flex items-center gap-1">
+                    <span>🎓</span><span>인증서</span>
+                </button>
+                <button onclick="resetProgress()" class="bg-white hover:bg-yellow-50 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="처음부터 다시 하기 (경험치·풀이 기록 지우기)">
+                    <span>🔄</span><span>처음부터</span>
+                </button>
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="bg-yellow-100 hover:bg-yellow-200 text-amber-900 font-bold text-xs sm:text-sm px-2.5 py-2 rounded-xl border-2 border-amber-500 shadow-sm transition flex items-center gap-1" title="효과음 켜기/끄기">
+                    <span id="sound-icon">🔊</span><span id="sound-label">소리 켬</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 스테이지 탭 네비게이션 -->
+        <div class="bg-amber-100/90 border-t border-amber-400">
+            <div class="max-w-5xl mx-auto px-2 sm:px-6 py-1.5 flex overflow-x-auto gap-1.5" id="stage-tabs">
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 학습 컨테이너 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-6">
+        <div id="stage-container" class="bg-white rounded-3xl border-4 border-amber-400 shadow-xl p-4 sm:p-8 transition-all">
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="text-center py-4 text-xs text-amber-800/70 font-medium">
+        사회·문화 · 2026 사회 계층 표분석의 패턴 학습 게임 · 은지몬 트레이닝 센터
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- 모달 1: 무시무시한 도깨비 은지몬 오답 경고 팝업 -->
+    <!-- ========================================== -->
+    <div id="goblin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div id="goblin-card" class="bg-gradient-to-b from-slate-900 via-red-950 to-slate-950 border-4 border-red-500 rounded-3xl max-w-md w-full p-6 text-white shadow-2xl relative animate-pop-in">
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-red-600 text-yellow-300 font-game text-sm sm:text-base px-4 py-1 rounded-full border-2 border-yellow-300 shadow-lg whitespace-nowrap">
+                ⚡ 도깨비 은지몬 출현! ⚡
+            </div>
+
+            <div class="flex flex-col items-center text-center mt-2">
+                <div id="goblin-svg-box" class="w-36 h-36 my-2 animate-bounce-slow"></div>
+
+                <h3 class="font-game text-2xl sm:text-3xl text-red-400 tracking-wide mt-1">
+                    "어허! 다시 풀어봐!!"
+                </h3>
+                <p id="goblin-target-label" class="text-xs sm:text-sm font-bold text-yellow-300 bg-red-900/70 px-3 py-1 rounded-full mt-2 border border-red-500/50">
+                    틀린 항목
+                </p>
+
+                <div class="bg-slate-800/90 border-2 border-amber-400/80 rounded-2xl p-4 mt-4 w-full text-left shadow-inner">
+                    <div class="flex items-center gap-1.5 text-amber-400 font-extrabold text-xs sm:text-sm mb-1.5">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>도깨비 은지몬의 특별 힌트</span>
+                    </div>
+                    <p id="goblin-hint-text" class="text-sm sm:text-base text-slate-100 leading-relaxed font-medium">
+                    </p>
+                </div>
+
+                <button id="goblin-close-btn" onclick="closeGoblinModal()" class="mt-5 w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-game text-lg py-3 rounded-2xl border-2 border-yellow-300 shadow-lg active:translate-y-0.5 transition cursor-pointer">
+                    🔥 알겠어요! 다시 풀어볼게요
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 2: 은지몬 진화 축하 팝업 -->
+    <!-- ========================================== -->
+    <div id="evo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-gradient-to-b from-yellow-200 via-amber-100 to-white border-4 border-amber-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl animate-pop-in">
+            <div class="inline-block bg-amber-500 text-white font-game text-sm px-4 py-1 rounded-full mb-2 shadow">
+                ✨ 축하합니다! 진화 성공! ✨
+            </div>
+            <h3 class="font-game text-2xl sm:text-3xl text-amber-950">
+                은지몬이 진화했습니다!
+            </h3>
+            <div id="evo-svg-box" class="w-40 h-40 mx-auto my-4 bg-white rounded-full border-4 border-yellow-400 flex items-center justify-center shadow-inner glow-gold"></div>
+            <p id="evo-new-name" class="font-game text-2xl text-amber-700"></p>
+            <p id="evo-new-desc" class="text-sm text-amber-900 mt-1 font-medium"></p>
+            <button onclick="closeEvoModal()" class="mt-5 w-full bg-amber-500 hover:bg-amber-600 text-white font-game text-lg py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                신난다! 계속 모험하기 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 3: 은지몬 5단계 진화 도감 -->
+    <!-- ========================================== -->
+    <div id="dex-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-amber-50 border-4 border-amber-500 rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl animate-pop-in overflow-hidden">
+            <div class="bg-yellow-300 px-6 py-4 border-b-2 border-amber-400 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📖</span>
+                    <h3 class="font-game text-xl sm:text-2xl text-amber-950">은지몬 진화 도감</h3>
+                </div>
+                <button onclick="closeDexModal()" class="w-9 h-9 rounded-full bg-white hover:bg-amber-100 border-2 border-amber-500 text-amber-900 font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-3" id="dex-list">
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 모달 4: 선생님 제출용 학습 완료 인증서 -->
+    <!-- ========================================== -->
+    <!-- [추가] 인증서 이미지 저장 창 (스마트폰·태블릿 대응)
+         - 공유 지원 기기: '사진에 저장/공유' 버튼 → 공유 메뉴의 '이미지 저장'으로 사진첩에 저장
+         - 그 밖의 기기: 이미지를 길게 눌러 저장 -->
+    <div id="cert-image-overlay" class="fixed inset-0 hidden items-center justify-center bg-black/80 p-3" style="z-index:70;">
+        <div class="bg-white rounded-3xl border-4 border-emerald-500 w-full max-w-md max-h-[95vh] overflow-y-auto p-4 text-center shadow-2xl">
+            <h3 class="font-game text-xl text-emerald-800 mb-2">🖼️ 인증서 이미지가 완성됐어요!</h3>
+            <img id="cert-image-preview" alt="학습 완료 인증서" class="mx-auto w-full max-w-[320px] rounded-xl border-2 border-amber-300 shadow" style="-webkit-touch-callout: default;">
+            <div id="cert-share-guide" class="mt-3 text-sm font-bold text-slate-700 leading-relaxed"></div>
+            <div class="flex flex-col gap-2 mt-3">
+                <!-- [추가] 카카오톡 등 앱 안 브라우저: 크롬/사파리로 옮겨 열기 (학습 기록도 같이 넘어감) -->
+                <button id="cert-external-btn" onclick="certOpenExternal()" class="hidden w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl border-2 border-sky-700 text-base">
+                    🌐 크롬(인터넷)으로 열어서 저장하기
+                </button>
+                <button id="cert-share-btn" onclick="shareCertImage()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl border-2 border-emerald-700 text-base">
+                    📲 사진에 저장 / 공유하기
+                </button>
+                <button onclick="downloadCertFile()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl border-2 border-amber-700 text-sm">
+                    💾 파일로 다운로드
+                </button>
+                <button onclick="closeCertImageOverlay()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-sm">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cert-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+        <div class="bg-white border-4 border-amber-500 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl animate-pop-in">
+            <div class="flex items-center justify-between border-b-2 border-amber-200 pb-3 mb-4">
+                <h3 class="font-game text-xl sm:text-2xl text-amber-950">🎓 은지몬 학습 완료 인증서</h3>
+                <button onclick="closeCertModal()" class="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">학번 (예: 20315)</label>
+                    <input type="text" id="student-id-input" oninput="updateCertPreview()" placeholder="학번 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 mb-1">이름 (예: 김은지)</label>
+                    <input type="text" id="student-name-input" oninput="updateCertPreview()" placeholder="이름 입력" class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none text-sm font-bold">
+                </div>
+            </div>
+
+            <div id="cert-card-area" class="bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-200 border-4 border-amber-500 rounded-2xl p-5 text-center relative shadow-inner">
+                <div class="text-xs font-extrabold text-amber-700 tracking-widest uppercase">Society & Culture · Social Mobility Table</div>
+                <h4 class="font-game text-2xl text-amber-950 mt-1">은지몬 계층표 분석 마스터 인증서</h4>
+                
+                <div id="cert-avatar" class="w-24 h-24 mx-auto my-3 bg-white rounded-full border-3 border-amber-500 flex items-center justify-center shadow"></div>
+                
+                <div class="bg-white/90 rounded-xl p-3 border border-amber-300 text-sm space-y-1.5">
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">트레이너:</span>
+                        <span id="cert-student-display" class="font-black text-amber-950">미입력 학생</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">달성 등급:</span>
+                        <span id="cert-rank-display" class="font-black text-orange-600">Lv.1 황금빛 은지몬 알</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">획득 경험치:</span>
+                        <span id="cert-xp-display" class="font-black text-amber-950">0 XP</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-amber-700 font-bold">클리어 현황:</span>
+                        <span id="cert-stages-display" class="font-black text-emerald-700">0 / 6 스테이지</span>
+                    </div>
+                </div>
+                <p id="cert-timestamp" class="text-[11px] text-amber-700 mt-3 font-medium"></p>
+            </div>
+
+            <div class="flex gap-2 mt-4">
+                <!-- [추가] 인증서 이미지 저장 버튼 -->
+                <button onclick="downloadCertImage().catch(() => { const m = document.getElementById('cert-image-msg'); m.textContent = '😢 이미지를 만들지 못했어요. 크롬이나 사파리에서 다시 열어 주세요.'; m.className = 'text-center text-xs font-bold text-rose-600 mt-2'; })" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-emerald-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <span>🖼️</span><span>이미지로 저장</span>
+                </button>
+                <button onclick="copyCertSummary()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl border-2 border-amber-700 text-sm transition flex items-center justify-center gap-1.5">
+                    <i class="fa-regular fa-copy"></i><span>결과 텍스트 복사</span>
+                </button>
+                <button onclick="closeCertModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-sm transition">
+                    닫기
+                </button>
+            </div>
+            <p id="copy-feedback" class="text-center text-xs font-bold text-emerald-600 mt-2 hidden">
+                ✅ 클립보드에 복사되었습니다! 클래스룸/패들렛에 붙여넣기 하세요.
+            </p>
+            <!-- [추가] 이미지 저장 안내 -->
+            <p id="cert-image-msg" class="hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 효과음 시스템 (Web Audio API)
+        // ==========================================
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'clear') {
+                    osc.type = 'triangle';
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                } else if (type === 'goblin') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.linearRampToValueAtTime(85, now + 0.35);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'evolve') {
+                    osc.type = 'sine';
+                    const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
+                    notes.forEach((freq, i) => {
+                        osc.frequency.setValueAtTime(freq, now + i * 0.09);
+                    });
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+                    osc.start(now);
+                    osc.stop(now + 0.75);
+                }
+            } catch (e) {
+                console.warn('Audio play failed:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            icon.textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-label').textContent = soundEnabled ? '소리 켬' : '소리 끔';
+        }
+
+        // ==========================================
+        // 2. 귀여운 은지몬 & 무시무시한 도깨비 은지몬 SVG
+        // ==========================================
+        function getEunjimonSVG(level) {
+            if (level === 1) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <ellipse cx="60" cy="105" rx="28" ry="6" fill="#FDE047" opacity="0.6"/>
+                    <path d="M60 18 C36 18 24 48 24 72 C24 94 40 104 60 104 C80 104 96 94 96 72 C96 48 84 18 60 18 Z" fill="#FEF08A" stroke="#CA8A04" stroke-width="4"/>
+                    <path d="M40 48 L50 38 L60 50 L70 38 L80 48" fill="none" stroke="#EAB308" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="44" cy="74" r="6" fill="#FACC15"/>
+                    <circle cx="76" cy="70" r="7" fill="#FACC15"/>
+                    <circle cx="60" cy="86" r="5" fill="#FACC15"/>
+                </svg>`;
+            } else if (level === 2) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M35 45 L22 16 L48 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M22 16 L31 23 L26 28 Z" fill="#422006"/>
+                    <path d="M85 45 L98 16 L72 34 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M98 16 L89 23 L94 28 Z" fill="#422006"/>
+                    <circle cx="60" cy="68" r="36" fill="#FEF08A" stroke="#854D0E" stroke-width="3.5"/>
+                    <circle cx="46" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="44.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <circle cx="74" cy="63" r="5.5" fill="#422006"/>
+                    <circle cx="72.5" cy="61.5" r="2" fill="#FFFFFF"/>
+                    <circle cx="36" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <circle cx="84" cy="74" r="6.5" fill="#FB7185" opacity="0.85"/>
+                    <path d="M53 75 Q60 82 67 75" fill="none" stroke="#422006" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            } else if (level === 3) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M86 86 L108 72 L100 60 L114 44 L94 52 L100 64 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3" stroke-linejoin="round"/>
+                    <path d="M36 42 L18 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M18 10 L29 18 L23 24 Z" fill="#422006"/>
+                    <path d="M84 42 L102 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M102 10 L91 18 L97 24 Z" fill="#422006"/>
+                    <ellipse cx="60" cy="70" rx="36" ry="34" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <path d="M62 42 L55 51 L61 51 L57 59" fill="none" stroke="#EA580C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="34" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <circle cx="86" cy="77" r="7" fill="#EF4444" opacity="0.85"/>
+                    <path d="M51 78 Q60 88 69 78 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            } else if (level === 4) {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <path d="M22 68 Q12 96 24 108 L96 108 Q108 96 98 68 Z" fill="#EF4444" stroke="#991B1B" stroke-width="3"/>
+                    <path d="M36 42 L16 10 L50 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M84 42 L104 10 L70 32 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="68" r="35" fill="#FACC15" stroke="#854D0E" stroke-width="3.5"/>
+                    <rect x="33" y="54" width="54" height="16" rx="8" fill="#38BDF8" fill-opacity="0.75" stroke="#0369A1" stroke-width="2.5"/>
+                    <circle cx="46" cy="62" r="4.5" fill="#1E293B"/>
+                    <circle cx="74" cy="62" r="4.5" fill="#1E293B"/>
+                    <circle cx="35" cy="77" r="6.5" fill="#F97316"/>
+                    <circle cx="85" cy="77" r="6.5" fill="#F97316"/>
+                    <path d="M50 80 Q60 89 70 80" fill="none" stroke="#422006" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>`;
+            } else {
+                return `
+                <svg viewBox="0 0 120 120" class="w-full h-full">
+                    <circle cx="60" cy="65" r="52" fill="#FEF08A" opacity="0.55"/>
+                    <path d="M34 45 L14 14 L48 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M86 45 L106 14 L72 35 Z" fill="#FACC15" stroke="#854D0E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="70" r="35" fill="#FDE047" stroke="#854D0E" stroke-width="3.5"/>
+                    <path d="M40 36 L44 18 L53 28 L60 14 L67 28 L76 18 L80 36 Z" fill="#F59E0B" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round"/>
+                    <circle cx="60" cy="28" r="3" fill="#EF4444"/>
+                    <circle cx="45" cy="66" r="6" fill="#422006"/>
+                    <circle cx="43" cy="64" r="2.5" fill="#FEF08A"/>
+                    <circle cx="75" cy="66" r="6" fill="#422006"/>
+                    <circle cx="73" cy="64" r="2.5" fill="#FEF08A"/>
+                    <circle cx="34" cy="78" r="7" fill="#EF4444"/>
+                    <circle cx="86" cy="78" r="7" fill="#EF4444"/>
+                    <path d="M49 80 Q60 92 71 80 Z" fill="#F87171" stroke="#422006" stroke-width="2.5"/>
+                </svg>`;
+            }
+        }
+
+        function getScaryGoblinSVG() {
+            return `
+            <svg viewBox="0 0 140 140" class="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.85)]">
+                <g transform="rotate(22 112 85)">
+                    <rect x="104" y="32" width="16" height="78" rx="8" fill="#78350F" stroke="#FACC15" stroke-width="2.5"/>
+                    <circle cx="107" cy="45" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="55" r="2.5" fill="#FDE047"/>
+                    <circle cx="107" cy="68" r="2.5" fill="#FDE047"/>
+                    <circle cx="117" cy="80" r="2.5" fill="#FDE047"/>
+                </g>
+                <path d="M22 92 Q10 62 32 45 Q28 24 50 28 Q68 8 86 28 Q108 24 104 45 Q126 62 114 92 Z" fill="#DC2626" opacity="0.55"/>
+                <path d="M42 42 L26 10 L56 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M98 42 L114 10 L84 34 Z" fill="#FACC15" stroke="#7F1D1D" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M30 58 L10 46 L28 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <path d="M110 58 L130 46 L112 74 Z" fill="#991B1B" stroke="#450A0A" stroke-width="3"/>
+                <circle cx="70" cy="76" r="40" fill="#B91C1C" stroke="#450A0A" stroke-width="4"/>
+                <path d="M70 42 C64 50 66 56 70 60 C74 56 76 50 70 42 Z" fill="#FACC15"/>
+                <path d="M40 60 L62 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <path d="M100 60 L78 70" stroke="#FEF08A" stroke-width="5" stroke-linecap="round"/>
+                <ellipse cx="52" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="53" cy="73" r="3" fill="#7F1D1D"/>
+                <ellipse cx="88" cy="73" rx="7.5" ry="5.5" fill="#FEF08A"/>
+                <circle cx="87" cy="73" r="3" fill="#7F1D1D"/>
+                <path d="M46 96 Q70 84 94 96 Q84 108 70 105 Q56 108 46 96 Z" fill="#450A0A" stroke="#FEF08A" stroke-width="2"/>
+                <polygon points="52,93 57,103 61,92" fill="#FFFFFF"/>
+                <polygon points="88,93 83,103 79,92" fill="#FFFFFF"/>
+            </svg>`;
+        }
+
+        // ==========================================
+        // 3. 진화 단계 및 스테이지 구성 데이터
+        // ==========================================
+        const EVOLUTION_STAGES = [
+            { level: 1, minXp: 0, name: 'Lv.1 황금빛 은지몬 알', desc: '사회·문화 계층표 분석의 잠재력을 품고 있는 신비로운 노란 알입니다.' },
+            { level: 2, minXp: 100, name: 'Lv.2 아기 은지몬', desc: '‘~대비’, ‘~에 대한’, ‘~중’의 분모(기준량)를 헷갈리지 않는 귀여운 은지몬!' },
+            { level: 3, minXp: 230, name: 'Lv.3 번개 은지몬', desc: '3×3 계층 이동표의 대물림·상승·하강 이동을 번개처럼 분류하는 실력파 은지몬!' },
+            { level: 4, minXp: 380, name: 'Lv.4 히어로 은지몬', desc: '복잡한 일치 대비 불일치 비율과 A·B·C 미지수 계층까지 단번에 추론하는 수호자!' },
+            { level: 5, minXp: 530, name: 'Lv.5 전설의 표분석왕 은지몬', desc: '상대적 비 환산과 수능·학평 고난도 계층표까지 완전 정복한 전설의 은지몬!' }
+        ];
+
+        const STAGE_LIST = [
+            { id: 0, short: 'Stage 0', title: '1쪽 상단 · 비와 비율 기초', xp: 80 },
+            { id: 1, short: 'Stage 1', title: '1쪽 하단 · 계층 이동 연습표', xp: 100 },
+            { id: 2, short: 'Stage 2', title: '2쪽 상단 · 표 분석 실전 1', xp: 120 },
+            { id: 3, short: 'Stage 3', title: '2쪽 하단 · 2020.3 학평 20번', xp: 120 },
+            { id: 4, short: 'Stage 4', title: '3쪽 · 표 분석 실전 2 (19.11 학평)', xp: 140 },
+            { id: 5, short: 'Stage 5', title: '최종 점검 · 빈출 오개념 OX', xp: 100 }
+        ];
+
+        let state = {
+            currentStage: 0,
+            xp: 0,
+            currentLevel: 1,
+            clearedStages: new Set(),
+            showColorHelper: false,
+            lastFocusedInputId: null,
+            userInputs: {},
+            s0: null,
+            s1: null,
+            s2: null,
+            s3: null,
+            s4: null,
+            s5: null,
+            lastRandomIndex: { s2: -1, s3: -1, s4: -1 }
+        };
+
+        // ==========================================
+        // 4. 유틸리티 & 각 스테이지 문제 생성기 (기본 + 무한 랜덤 무결성 검증)
+        // ==========================================
+        function randInt(min, max, step = 1) {
+            const count = Math.floor((max - min) / step) + 1;
+            return min + Math.floor(Math.random() * count) * step;
+        }
+
+        function parseFractionOrNumber(str) {
+            const cleaned = String(str).trim().replace(/%/g, '').replace(/\s+/g, '');
+            if (!cleaned) return NaN;
+            if (cleaned.includes('/')) {
+                const parts = cleaned.split('/');
+                if (parts.length !== 2 || parts[0] === '' || parts[1] === '') return NaN;
+                const num = Number(parts[0]);
+                const den = Number(parts[1]);
+                if (isNaN(num) || isNaN(den) || den === 0) return NaN;
+                return num / den;
+            }
+            const val = Number(cleaned);
+            return isNaN(val) ? NaN : val;
+        }
+
+        function clearStageInputs(stagePrefix) {
+            Object.keys(state.userInputs).forEach(k => {
+                if (k.startsWith(stagePrefix)) {
+                    delete state.userInputs[k];
+                }
+            });
+        }
+
+        function getShapeName(u, m, l) {
+            if (m > u && m > l) return '다이아몬드형';
+            if (l > m && m > u) return '피라미드형';
+            return null;
+        }
+
+        // Stage 0: 1쪽 상단 비와 비율
+        function createStage0Data() {
+            return {
+                rewardClaimed: false,
+                mcAnswers: {}
+            };
+        }
+
+        // Stage 1: 1쪽 하단 계층 이동 연습표 (행=자녀, 열=부모)
+        // [랜덤 검증]: 부모 세대와 자녀 세대 모두 명확한 '다이아몬드형' 또는 '피라미드형'이 되며, 이전 문제와 다른 숫자가 나오도록 보장
+        function createStage1Data(isRandom = false) {
+            let cells;
+            if (!isRandom) {
+                cells = [
+                    [12, 6, 2],
+                    [15, 30, 5],
+                    [3, 14, 13]
+                ];
+            } else {
+                const prevKey = state.s1 ? JSON.stringify(state.s1.cells) : '';
+                let valid = false;
+                while (!valid) {
+                    const pShapeTarget = Math.random() < 0.7 ? '다이아몬드형' : '피라미드형';
+                    let pSums;
+                    if (pShapeTarget === '다이아몬드형') {
+                        const pOpts = [[30, 50, 20], [25, 50, 25], [20, 55, 25], [25, 55, 20]];
+                        pSums = pOpts[Math.floor(Math.random() * pOpts.length)];
+                    } else {
+                        const pOpts = [[20, 30, 50], [15, 35, 50], [20, 35, 45]];
+                        pSums = pOpts[Math.floor(Math.random() * pOpts.length)];
+                    }
+
+                    // 각 부모 열(0:상, 1:중, 2:하)을 자녀 행(0:상, 1:중, 2:하)으로 분배
+                    const c00 = randInt(6, pSums[0] - 6, 1);
+                    const c10 = randInt(4, pSums[0] - c00 - 2, 1);
+                    const c20 = pSums[0] - c00 - c10;
+
+                    const c01 = randInt(3, 10, 1);
+                    const c11 = randInt(15, pSums[1] - c01 - 5, 1);
+                    const c21 = pSums[1] - c01 - c11;
+
+                    const c02 = randInt(1, 5, 1);
+                    const c12 = randInt(4, 12, 1);
+                    const c22 = pSums[2] - c02 - c12;
+
+                    if (c20 > 0 && c21 > 0 && c22 > 0) {
+                        const candidate = [
+                            [c00, c01, c02],
+                            [c10, c11, c12],
+                            [c20, c21, c22]
+                        ];
+                        const cSums = candidate.map(row => row[0] + row[1] + row[2]);
+                        const pSh = getShapeName(pSums[0], pSums[1], pSums[2]);
+                        const cSh = getShapeName(cSums[0], cSums[1], cSums[2]);
+
+                        if (pSh && cSh && JSON.stringify(candidate) !== prevKey) {
+                            cells = candidate;
+                            valid = true;
+                        }
+                    }
+                }
+            }
+
+            const childSums = cells.map(row => row[0] + row[1] + row[2]);
+            const parentSums = [0, 1, 2].map(c => cells[0][c] + cells[1][c] + cells[2][c]);
+
+            const parentShape = getShapeName(parentSums[0], parentSums[1], parentSums[2]);
+            const childShape = getShapeName(childSums[0], childSums[1], childSums[2]);
+
+            const stable = cells[0][0] + cells[1][1] + cells[2][2];
+            const up = cells[0][1] + cells[0][2] + cells[1][2];
+            const down = cells[1][0] + cells[2][0] + cells[2][1];
+
+            return {
+                isRandom,
+                rewardClaimed: false,
+                cells,
+                parentSums,
+                childSums,
+                parentShape,
+                childShape,
+                stable,
+                up,
+                down,
+                userParentShape: null,
+                userChildShape: null
+            };
+        }
+
+        // Stage 2: 2쪽 상단 표 분석 실전 1 (행=부모, 열=자녀)
+        // [랜덤 검증]: 부모 대비 일치율이 모두 깔끔한 정수로 떨어지고, 직전 프리셋과 중복되지 않도록 선택
+        function createStage2Data(isRandom = false) {
+            let pSums, cSums, matchRates, cells;
+            if (!isRandom) {
+                cells = [
+                    [10, 6, 4],
+                    [8, 24, 28],
+                    [2, 0, 18]
+                ];
+            } else {
+                const presets = [
+                    [
+                        [10, 8, 2],
+                        [9, 30, 11],
+                        [6, 0, 24]
+                    ],
+                    [
+                        [15, 10, 5],
+                        [5, 25, 20],
+                        [5, 0, 15]
+                    ],
+                    [
+                        [12, 5, 3],
+                        [9, 30, 21],
+                        [4, 0, 16]
+                    ],
+                    [
+                        [8, 7, 5],
+                        [10, 35, 5],
+                        [7, 0, 23]
+                    ]
+                ];
+                // presets[3]의 부모하 일치율: 23/30은 무한소수이므로 24/30(80%)이 되도록 보정
+                presets[3] = [
+                    [8, 7, 5],
+                    [11, 35, 4],
+                    [6, 0, 24]
+                ];
+
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * presets.length);
+                } while (idx === state.lastRandomIndex.s2);
+                state.lastRandomIndex.s2 = idx;
+                cells = presets[idx];
+            }
+
+            pSums = cells.map(r => r[0] + r[1] + r[2]);
+            cSums = [0, 1, 2].map(c => cells[0][c] + cells[1][c] + cells[2][c]);
+            matchRates = [
+                Math.round((cells[0][0] / pSums[0]) * 100),
+                Math.round((cells[1][1] / pSums[1]) * 100),
+                Math.round((cells[2][2] / pSums[2]) * 100)
+            ];
+
+            const totalMatch = cells[0][0] + cells[1][1] + cells[2][2];
+            const q4Ans = Number((((pSums[0] - cells[0][0]) / cells[0][0]) * 100).toFixed(1));
+            const q5Ans = Number((((pSums[1] - cells[1][1]) / cells[1][1]) * 100).toFixed(1));
+            const q6Ans = Number((((pSums[2] - cells[2][2]) / cells[2][2]) * 100).toFixed(1));
+
+            return {
+                isRandom,
+                rewardClaimed: false,
+                pSums,
+                cSums,
+                matchRates,
+                cells,
+                totalMatch,
+                q4Ans,
+                q5Ans,
+                q6Ans
+            };
+        }
+
+        // Stage 3: 2쪽 하단 2020년 3월 학평 20번 (행=자녀 A,B,C / 열=부모 A,B,C)
+        // [랜덤 검증]: 모든 랜덤 프리셋에서 대각선 합이 50%(일치=불일치), 상승>하강, C(중층) 최대(다이아몬드형), 부모중층 중 하강>상승이 일관되게 성립하도록 설계
+        function createStage3Data(isRandom = false) {
+            let cells;
+            if (!isRandom) {
+                cells = [
+                    [10, 6, 4],
+                    [2, 10, 14],
+                    [6, 18, 30]
+                ];
+            } else {
+                const presets = [
+                    // 대각선: 12 + 12 + 26 = 50, 상승: 5+17+3=25, 하강: 3+5+17=25가 되지 않도록 조정 -> 상승(6+18+4=28) > 하강(2+4+16=22)
+                    [
+                        [12, 6, 4],
+                        [2, 12, 16],
+                        [4, 18, 26]
+                    ],
+                    // 대각선: 14 + 10 + 26 = 50, 상승: 6+16+4=26 > 하강: 2+6+16=24
+                    [
+                        [14, 6, 4],
+                        [2, 10, 16],
+                        [6, 16, 26]
+                    ],
+                    // 대각선: 9 + 11 + 30 = 50, 상승: 7+19+3=29 > 하강: 3+5+13=21
+                    [
+                        [9, 7, 3],
+                        [3, 11, 13],
+                        [5, 19, 30]
+                    ]
+                ];
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * presets.length);
+                } while (idx === state.lastRandomIndex.s3);
+                state.lastRandomIndex.s3 = idx;
+                cells = presets[idx];
+            }
+
+            const rowSums = cells.map(r => r[0] + r[1] + r[2]);
+            const colSums = [0, 1, 2].map(c => cells[0][c] + cells[1][c] + cells[2][c]);
+            const stable = cells[0][0] + cells[1][1] + cells[2][2];
+            const up = cells[0][1] + cells[2][1] + cells[0][2];
+            const down = cells[1][0] + cells[2][0] + cells[1][2];
+
+            return {
+                isRandom,
+                rewardClaimed: false,
+                cells,
+                rowSums,
+                colSums,
+                stable,
+                up,
+                down,
+                mapA: null,
+                mapB: null,
+                mapC: null,
+                oxChecks: { 0: null, 1: null, 2: null, 3: null, 4: null }
+            };
+        }
+
+        // Stage 4: 3쪽 2019년 11월 학평 20번 (행=부모, 열=자녀)
+        // [랜덤 검증]: 모든 프리셋에서 ㄱ(X), ㄴ(O), ㄷ(X), ㄹ(X) 조건이 수학적으로 100% 성립하며, 직전 프리셋과 반드시 다른 문제가 나오도록 보장
+        function createStage4Data(isRandom = false) {
+            let pRatio, cRatio, matchRates, pSums, cSums, cells;
+            if (!isRandom) {
+                pRatio = '1 : 2 : 2';
+                cRatio = '상 : (중+하) = 1 : 3, 중 = 2';
+                matchRates = [40, 60, 30];
+                pSums = [20, 40, 40];
+                cSums = [25, 50, 25];
+                cells = [
+                    [8, 4, 8],
+                    [11, 24, 5],
+                    [6, 22, 12]
+                ];
+            } else {
+                const presets = [
+                    {
+                        pRatio: '1 : 2 : 2',
+                        cRatio: '상 : (중+하) = 1 : 3, 중 = 2',
+                        matchRates: [50, 50, 25],
+                        pSums: [20, 40, 40],
+                        cSums: [25, 50, 25],
+                        // 일치=10+20+10=40(<60), 상승=15+0+30=45, 하강=0+10+5=15 (45는 15의 3배이므로 5배 이상 X), 자녀대비 일치율: 상(10/25=40%), 중(20/50=40%), 하(10/25=40%) -> 상층이 가장 높지 않음(X)
+                        cells: [
+                            [10, 0, 10],
+                            [15, 20, 5],
+                            [0, 30, 10]
+                        ]
+                    },
+                    {
+                        pRatio: '1 : 2 : 2',
+                        cRatio: '상 : (중+하) = 3 : 7, 중 = 4',
+                        matchRates: [40, 50, 30],
+                        pSums: [20, 40, 40],
+                        cSums: [30, 40, 30],
+                        // 일치=8+20+12=40(<60), 상승=10+12+16=38, 하강=4+8+10=22 (5배 이상 X), 자녀대비 일치율: 상(8/30=26.7%), 중(20/40=50%), 하(12/30=40%) -> 중층이 가장 높음(X)
+                        cells: [
+                            [8, 4, 8],
+                            [10, 20, 10],
+                            [12, 16, 12]
+                        ]
+                    },
+                    {
+                        pRatio: '3 : 4 : 3',
+                        cRatio: '상 : (중+하) = 1 : 3, 중 = 2',
+                        matchRates: [30, 50, 40],
+                        pSums: [30, 40, 30],
+                        cSums: [25, 50, 25],
+                        // 부상-자상=9, 부상-자하=9 -> 부상-자중=12 / 부중-자중=20, 부하-자하=12 -> 부중-자하=4, 부중-자상=16, 부하-자상=0, 부하-자중=18
+                        // 일치=9+20+12=41(<59), 상승=16+0+18=34, 하강=12+9+4=25 (5배 이상 X), 자녀대비 일치율: 상(9/25=36%), 중(20/50=40%), 하(12/25=48%) -> 하층이 가장 높음(X)
+                        cells: [
+                            [9, 12, 9],
+                            [16, 20, 4],
+                            [0, 18, 12]
+                        ]
+                    }
+                ];
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * presets.length);
+                } while (idx === state.lastRandomIndex.s4);
+                state.lastRandomIndex.s4 = idx;
+                const pick = presets[idx];
+                pRatio = pick.pRatio;
+                cRatio = pick.cRatio;
+                matchRates = pick.matchRates;
+                pSums = pick.pSums;
+                cSums = pick.cSums;
+                cells = pick.cells;
+            }
+
+            const stable = cells[0][0] + cells[1][1] + cells[2][2];
+            const up = cells[1][0] + cells[2][0] + cells[2][1];
+            const down = cells[0][1] + cells[0][2] + cells[1][2];
+
+            return {
+                isRandom,
+                rewardClaimed: false,
+                pRatio,
+                cRatio,
+                matchRates,
+                pSums,
+                cSums,
+                cells,
+                stable,
+                up,
+                down,
+                oxChecks: { g: null, n: null, d: null, r: null }
+            };
+        }
+
+        // Stage 5: 빈출 오개념 OX
+        function createStage5Data() {
+            return {
+                rewardClaimed: false,
+                oxChecks: { 0: null, 1: null, 2: null, 3: null, 4: null }
+            };
+        }
+
+        function initAllProblems() {
+            state.userInputs = {};
+            state.s0 = createStage0Data();
+            state.s1 = createStage1Data(false);
+            state.s2 = createStage2Data(false);
+            state.s3 = createStage3Data(false);
+            state.s4 = createStage4Data(false);
+            state.s5 = createStage5Data();
+        }
+
+        // ==========================================
+        // 5. 실시간 즉각 채점 & 도깨비 은지몬 팝업 로직
+        // ==========================================
+        function handleCellInput(inputEl) {
+            const existing = state.userInputs[inputEl.id] || {};
+            state.userInputs[inputEl.id] = {
+                value: inputEl.value,
+                valid: existing.valid || null
+            };
+            saveProgress();
+        }
+
+        function handleCellEnter(e, inputEl) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validateSingleCell(inputEl, true);
+            }
+        }
+
+        function handleCellBlur(inputEl) {
+            if (inputEl.value.trim() === '') return;
+            validateSingleCell(inputEl, false);
+        }
+
+        function validateSingleCell(inputEl, moveNextOnSuccess = false) {
+            const rawVal = inputEl.value.trim();
+            if (rawVal === '' || rawVal === '-') return false;
+
+            const userNum = parseFractionOrNumber(rawVal);
+            const expected = Number(inputEl.dataset.answer);
+            const tolerance = Number(inputEl.dataset.tol || 0.15);
+            const requireFraction = inputEl.dataset.reqfrac === 'true';
+            const label = inputEl.dataset.label || '빈칸';
+            const hint = inputEl.dataset.hint || '기준량(분모)과 비교하는 양(분자)을 다시 확인해 보세요!';
+
+            let isCorrect = !isNaN(userNum) && Math.abs(userNum - expected) <= tolerance;
+            if (requireFraction && !rawVal.includes('/')) {
+                isCorrect = false;
+            }
+
+            if (isCorrect) {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'true' };
+                inputEl.classList.remove('border-amber-300', 'border-red-500', 'bg-red-50', 'text-red-700');
+                inputEl.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.dataset.valid = 'true';
+                playSound('correct');
+
+                if (moveNextOnSuccess) {
+                    focusNextInput(inputEl);
+                }
+                saveProgress();
+                return true;
+            } else {
+                state.userInputs[inputEl.id] = { value: rawVal, valid: 'false' };
+                inputEl.classList.remove('border-amber-300', 'border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                inputEl.classList.add('border-red-500', 'bg-red-50', 'text-red-700', 'animate-shake');
+                setTimeout(() => inputEl.classList.remove('animate-shake'), 450);
+                inputEl.dataset.valid = 'false';
+
+                state.lastFocusedInputId = inputEl.id;
+                showGoblinModal(label, hint);
+                saveProgress();
+                return false;
+            }
+        }
+
+        function focusNextInput(currentEl) {
+            const inputs = Array.from(document.querySelectorAll('#stage-container input[data-answer]'));
+            const idx = inputs.indexOf(currentEl);
+            if (idx >= 0 && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            }
+        }
+
+        function showGoblinModal(label, hint) {
+            playSound('goblin');
+            document.getElementById('goblin-svg-box').innerHTML = getScaryGoblinSVG();
+            document.getElementById('goblin-target-label').textContent = `틀린 항목: ${label}`;
+            document.getElementById('goblin-hint-text').innerHTML = hint;
+
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGoblinModal() {
+            const modal = document.getElementById('goblin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            if (state.lastFocusedInputId) {
+                const target = document.getElementById(state.lastFocusedInputId);
+                if (target) {
+                    target.focus();
+                    target.select();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const goblinModal = document.getElementById('goblin-modal');
+            if (!goblinModal.classList.contains('hidden')) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    e.preventDefault();
+                    closeGoblinModal();
+                }
+            }
+        });
+
+        // ==========================================
+        // 6. 경험치(XP), 진화, 도감, 인증서 관리
+        // ==========================================
+        function grantStageClear(stageId) {
+            const stageInfo = STAGE_LIST.find(s => s.id === stageId);
+            if (!stageInfo) return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+
+            const stageObj = state[`s${stageId}`];
+            const isFirstTime = !state.clearedStages.has(stageId);
+
+            // 이미 깬 스테이지에서 새로운 문제를 생성하지 않고 버튼만 연타할 때 중복 XP 차단
+            if (!isFirstTime && (!stageObj || stageObj.rewardClaimed)) {
+                playSound('correct');
+                return { isFirstTime: false, gainedXp: 0, alreadyClaimed: true };
+            }
+
+            state.clearedStages.add(stageId);
+            if (stageObj) stageObj.rewardClaimed = true;
+
+            const gainedXp = isFirstTime ? stageInfo.xp : 20;
+            state.xp += gainedXp;
+
+            let newStageObj = EVOLUTION_STAGES[0];
+            for (const st of EVOLUTION_STAGES) {
+                if (state.xp >= st.minXp) {
+                    newStageObj = st;
+                }
+            }
+
+            const didEvolve = newStageObj.level > state.currentLevel;
+            state.currentLevel = newStageObj.level;
+
+            updateHUD();
+            renderTabs();
+
+            if (didEvolve) {
+                playSound('evolve');
+                document.getElementById('evo-svg-box').innerHTML = getEunjimonSVG(newStageObj.level);
+                document.getElementById('evo-new-name').textContent = newStageObj.name;
+                document.getElementById('evo-new-desc').textContent = newStageObj.desc;
+                const evoModal = document.getElementById('evo-modal');
+                evoModal.classList.remove('hidden');
+                evoModal.classList.add('flex');
+            } else {
+                playSound('clear');
+            }
+
+            saveProgress();
+            return { isFirstTime, gainedXp, alreadyClaimed: false };
+        }
+
+        function closeEvoModal() {
+            const evoModal = document.getElementById('evo-modal');
+            evoModal.classList.add('hidden');
+            evoModal.classList.remove('flex');
+        }
+
+        function updateHUD() {
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const nextEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel + 1);
+
+            document.getElementById('hud-avatar').innerHTML = getEunjimonSVG(state.currentLevel);
+            document.getElementById('hud-stage-name').textContent = curEvo.name;
+
+            if (nextEvo) {
+                document.getElementById('xp-text').textContent = `${state.xp} / ${nextEvo.minXp} XP`;
+                const prevMin = curEvo.minXp;
+                const pct = Math.min(100, Math.max(5, ((state.xp - prevMin) / (nextEvo.minXp - prevMin)) * 100));
+                document.getElementById('xp-bar').style.width = `${pct}%`;
+            } else {
+                document.getElementById('xp-text').textContent = `${state.xp} XP (MAX!)`;
+                document.getElementById('xp-bar').style.width = '100%';
+            }
+        }
+
+        function openDexModal() {
+            const listEl = document.getElementById('dex-list');
+            listEl.innerHTML = EVOLUTION_STAGES.map(st => {
+                const unlocked = state.xp >= st.minXp;
+                return `
+                <div class="flex items-center gap-4 p-3.5 rounded-2xl border-2 ${unlocked ? 'bg-white border-amber-400 shadow-sm' : 'bg-slate-100 border-slate-300 opacity-70'}">
+                    <div class="w-20 h-20 rounded-2xl border-2 ${unlocked ? 'bg-yellow-50 border-amber-400' : 'bg-slate-200 border-slate-300'} flex items-center justify-center shrink-0 p-1">
+                        ${unlocked ? getEunjimonSVG(st.level) : '<span class="text-3xl font-game text-slate-400">?</span>'}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-game text-lg ${unlocked ? 'text-amber-950' : 'text-slate-500'}">
+                                ${unlocked ? st.name : `Lv.${st.level} 미개방 은지몬`}
+                            </span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${unlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                                ${unlocked ? '해금 완료' : `필요 경험치: ${st.minXp} XP`}
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm mt-1 ${unlocked ? 'text-amber-800' : 'text-slate-500'}">
+                            ${unlocked ? st.desc : '학습 문제를 클리어하고 경험치를 모으면 모습이 공개됩니다!'}
+                        </p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const modal = document.getElementById('dex-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDexModal() {
+            const modal = document.getElementById('dex-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openCertModal() {
+            updateCertPreview();
+            document.getElementById('copy-feedback').classList.add('hidden');
+            document.getElementById('cert-image-msg').className = 'hidden';
+            const modal = document.getElementById('cert-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCertModal() {
+            const modal = document.getElementById('cert-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateCertPreview() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const displayStr = (sid || sname) ? `${sid} ${sname}`.trim() : '미입력 학생';
+
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            document.getElementById('cert-avatar').innerHTML = getEunjimonSVG(state.currentLevel);
+            document.getElementById('cert-student-display').textContent = displayStr;
+            document.getElementById('cert-rank-display').textContent = curEvo.name;
+            document.getElementById('cert-xp-display').textContent = `${state.xp} XP`;
+            document.getElementById('cert-stages-display').textContent = `${state.clearedStages.size} / ${STAGE_LIST.length} 스테이지 완료`;
+
+            const now = new Date();
+            document.getElementById('cert-timestamp').textContent =
+                `발급 일시: ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }
+
+        function copyCertSummary() {
+            const sid = document.getElementById('student-id-input').value.trim() || '학번미입력';
+            const sname = document.getElementById('student-name-input').value.trim() || '이름미입력';
+            const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
+            const text = `[은지몬 사회·문화 계층표 분석 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료`;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            document.getElementById('copy-feedback').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // [추가] 인증서 이미지(PNG) 저장
+        //  - 화면의 인증서 내용을 캔버스에 다시 그려서 PNG로 내려받음 (외부 라이브러리 없음)
+        //  - 다운로드가 막힌 환경(일부 태블릿·앱 내 브라우저)을 위해 미리보기 이미지도 함께 보여 줌
+        // ==========================================
+        function certFitFont(ctx, text, weightFamily, maxSize, maxWidth) {
+            let size = maxSize;
+            ctx.font = `${weightFamily.replace('{s}', size)}`;
+            while (ctx.measureText(text).width > maxWidth && size > 16) {
+                size -= 2;
+                ctx.font = `${weightFamily.replace('{s}', size)}`;
+            }
+            return size;
+        }
+        function certRoundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function certLoadSvg(svgEl) {
+            return new Promise((resolve) => {
+                if (!svgEl) return resolve(null);
+                const clone = svgEl.cloneNode(true);
+                clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                clone.setAttribute('width', '480');
+                clone.setAttribute('height', '480');
+                clone.removeAttribute('class');
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+            });
+        }
+        async function downloadCertImage() {
+            const sid = document.getElementById('student-id-input').value.trim();
+            const sname = document.getElementById('student-name-input').value.trim();
+            const msg = document.getElementById('cert-image-msg');
+            if (!sid || !sname) {
+                msg.textContent = '⚠️ 학번과 이름을 먼저 입력해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                document.getElementById(!sid ? 'student-id-input' : 'student-name-input').focus();
+                return;
+            }
+            updateCertPreview();
+            // [추가] PC: 저장한 인증서를 새 창으로 바로 보여 줌.
+            //  버튼을 누른 순간 창을 먼저 열어 둬야 팝업 차단에 걸리지 않음
+            let certWin = null;
+            if (!certIsMobile()) {
+                try {
+                    certWin = window.open('', '_blank');
+                    if (certWin) certWin.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40vh;color:#B45309;font-weight:bold">⏳ 인증서 이미지를 만드는 중...</p>');
+                } catch (e) { certWin = null; }
+            }
+            msg.textContent = '⏳ 인증서 이미지를 만드는 중...';
+            msg.className = 'text-center text-xs font-bold text-amber-700 mt-2';
+
+            // 웹 글꼴(Jua, Noto Sans KR)이 준비될 때까지 잠깐 기다림 (최대 2초)
+            try {
+                await Promise.race([
+                    Promise.all([
+                        document.fonts.load('64px Jua', '은지몬통사몬인증서'),
+                        document.fonts.load('700 36px "Noto Sans KR"', '트레이너달성등급'),
+                        document.fonts.load('900 40px "Noto Sans KR"', '스테이지완료')
+                    ]),
+                    new Promise(r => setTimeout(r, 2000))
+                ]);
+            } catch (e) { /* 글꼴을 못 불러와도 기본 글꼴로 계속 */ }
+
+            const area = document.getElementById('cert-card-area');
+            const subtitle = area.querySelector('div').textContent.trim();
+            const title = area.querySelector('h4').textContent.trim();
+            const rows = [
+                ['트레이너', document.getElementById('cert-student-display').textContent, '#451A03'],
+                ['달성 등급', document.getElementById('cert-rank-display').textContent, '#EA580C'],
+                ['획득 경험치', document.getElementById('cert-xp-display').textContent, '#451A03'],
+                ['클리어 현황', document.getElementById('cert-stages-display').textContent, '#047857']
+            ];
+            const stamp = document.getElementById('cert-timestamp').textContent;
+            const allClear = state.clearedStages.size === STAGE_LIST.length;
+            const avatarImg = await certLoadSvg(document.querySelector('#cert-avatar svg'));
+
+            const W = 1080, H = 1350;
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const SANS = '"Noto Sans KR", sans-serif';
+            const GAME = 'Jua, "Noto Sans KR", sans-serif';
+
+            // 배경 + 테두리
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#FEF9C3'); bg.addColorStop(0.5, '#FFFBEB'); bg.addColorStop(1, '#FEF08A');
+            certRoundRect(ctx, 30, 30, W - 60, H - 60, 56);
+            ctx.fillStyle = bg; ctx.fill();
+            ctx.lineWidth = 18; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            certRoundRect(ctx, 66, 66, W - 132, H - 132, 36);
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            // 영어 부제
+            certFitFont(ctx, subtitle.toUpperCase(), `800 {s}px ${SANS}`, 28, 860);
+            ctx.fillStyle = '#B45309';
+            ctx.fillText(subtitle.toUpperCase(), W / 2, 150);
+            // 제목
+            certFitFont(ctx, title, `{s}px ${GAME}`, 66, 880);
+            ctx.fillStyle = '#451A03';
+            ctx.fillText(title, W / 2, 230);
+
+            // 캐릭터
+            const cx = W / 2, cy = 440, r = 150;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF'; ctx.fill();
+            ctx.lineWidth = 9; ctx.strokeStyle = '#F59E0B'; ctx.stroke();
+            if (avatarImg) ctx.drawImage(avatarImg, cx - 120, cy - 120, 240, 240);
+
+            // 정보 상자
+            const bx = 110, by = 640, bw = W - 220, rowH = 104;
+            certRoundRect(ctx, bx, by, bw, rowH * rows.length + 40, 28);
+            ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fill();
+            ctx.lineWidth = 3; ctx.strokeStyle = '#FCD34D'; ctx.stroke();
+            rows.forEach(([label, value, color], i) => {
+                const y = by + 20 + rowH * i + rowH / 2;
+                ctx.textAlign = 'left';
+                ctx.font = `700 34px ${SANS}`; ctx.fillStyle = '#B45309';
+                ctx.fillText(label, bx + 44, y);
+                ctx.textAlign = 'right';
+                certFitFont(ctx, value, `900 {s}px ${SANS}`, 40, bw - 300);
+                ctx.fillStyle = color;
+                ctx.fillText(value, bx + bw - 44, y);
+                if (i < rows.length - 1) {
+                    ctx.beginPath(); ctx.moveTo(bx + 36, y + rowH / 2); ctx.lineTo(bx + bw - 36, y + rowH / 2);
+                    ctx.lineWidth = 2; ctx.strokeStyle = '#FEF3C7'; ctx.stroke();
+                }
+            });
+
+            // 발급 일시
+            ctx.textAlign = 'center';
+            ctx.font = `500 28px ${SANS}`; ctx.fillStyle = '#B45309';
+            ctx.fillText(stamp, W / 2, by + rowH * rows.length + 110);
+
+            // 모든 스테이지 클리어 시 도장
+            if (allClear) {
+                ctx.save();
+                ctx.translate(W - 205, 480); ctx.rotate(-0.25);
+                ctx.globalAlpha = 0.85;
+                ctx.beginPath(); ctx.arc(0, 0, 92, 0, Math.PI * 2);
+                ctx.lineWidth = 8; ctx.strokeStyle = '#DC2626'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 78, 0, Math.PI * 2);
+                ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#DC2626';
+                ctx.font = `44px ${GAME}`; ctx.fillText('마스터', 0, -14);
+                ctx.font = `30px ${GAME}`; ctx.fillText('달성!', 0, 30);
+                ctx.restore();
+            }
+
+            const safe = s => s.replace(/[\\/:*?"<>|\s]+/g, '_');
+            const fileName = `${safe(title)}_${safe(sid)}_${safe(sname)}.png`;
+            let url;
+            try { url = canvas.toDataURL('image/png'); } catch (e) {
+                if (certWin) certWin.close();
+                msg.textContent = '😢 이미지를 만들지 못했어요. 결과 텍스트 복사를 이용해 주세요.';
+                msg.className = 'text-center text-xs font-bold text-rose-600 mt-2';
+                return;
+            }
+            // [수정] 스마트폰·태블릿 대응: 바로 다운로드 대신 저장 창을 띄움
+            const blob = await new Promise(res => { try { canvas.toBlob(res, 'image/png'); } catch (e) { res(null); } });
+            certImageData = { url, blob, fileName };
+            document.getElementById('cert-image-preview').src = url;
+
+            const ua = navigator.userAgent || '';
+            const isMobile = certIsMobile();
+            const isInApp = /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps|Whale\/.*Mobile.*inapp/i.test(ua);
+            let canShareFile = false;
+            try {
+                canShareFile = !!(blob && navigator.canShare && navigator.share &&
+                    navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] }));
+            } catch (e) { canShareFile = false; }
+
+            const guide = document.getElementById('cert-share-guide');
+            const shareBtn = document.getElementById('cert-share-btn');
+            shareBtn.classList.toggle('hidden', !canShareFile || isInApp);
+            document.getElementById('cert-external-btn').classList.toggle('hidden', !(isMobile && isInApp));
+            if (!isMobile) {
+                guide.innerHTML = `✅ <b>${fileName}</b> 파일을 내려받았어요.<br>
+                    <span class="text-xs text-slate-500">저장 위치: <b>다운로드</b> 폴더 (크롬에서 <b>Ctrl+J</b>, 맥은 <b>⌘+Shift+J</b>를 누르면 바로 보여요)</span><br>클래스룸/패들렛에 올려 주세요.`;
+                downloadCertFile();  // PC는 지금처럼 바로 다운로드
+                showCertInWindow(certWin, url, fileName);  // [추가] 저장한 이미지를 새 창으로
+            } else if (isInApp) {
+                // [수정] 카카오톡·네이버 앱 안 브라우저는 다운로드·공유가 막혀 있음 → 크롬/사파리로 옮겨 저장
+                guide.innerHTML = `⚠️ <span class="text-rose-600">카카오톡·네이버 앱 안에서는 사진 저장이 막혀 있어요.</span><br>
+                    아래 <span class="text-sky-700">파란 버튼</span>을 누르면 크롬(아이폰은 사파리)에서 열려요.<br>
+                    <span class="text-xs text-slate-500">경험치·클리어 기록은 그대로 넘어가요. 열린 화면에서 학번·이름을 다시 쓰고 '이미지로 저장'을 눌러 주세요.</span>`;
+            } else if (canShareFile) {
+                guide.innerHTML = `📲 아래 초록 버튼 → <span class="text-emerald-700">'이미지 저장'</span>(아이폰) 또는 <span class="text-emerald-700">'갤러리/사진'</span>(안드로이드)을 고르세요.<br>
+                    <span class="text-xs text-slate-500">클래스룸·카카오톡으로 바로 보내도 돼요. 안 되면 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            } else {
+                guide.innerHTML = `👆 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> '이미지 저장' 또는 '이미지 다운로드'를 누르세요.`;
+            }
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.remove('hidden'); ov.classList.add('flex');
+            msg.className = 'hidden';
+            if (typeof playSound === 'function') playSound('correct');
+        }
+
+        let certImageData = null;
+        // [추가] Esc로 저장 창 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCertImageOverlay();
+        });
+        function closeCertImageOverlay() {
+            const ov = document.getElementById('cert-image-overlay');
+            ov.classList.add('hidden'); ov.classList.remove('flex');
+        }
+        // 공유 메뉴 열기 (버튼을 누른 순간 바로 호출해야 휴대폰에서 막히지 않음)
+        function shareCertImage() {
+            if (!certImageData || !certImageData.blob) return downloadCertFile();
+            const file = new File([certImageData.blob], certImageData.fileName, { type: 'image/png' });
+            navigator.share({ files: [file], title: certImageData.fileName })
+                .then(() => {
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `✅ 완료! '이미지 저장'을 골랐다면 <span class="text-emerald-700">사진 앱(갤러리)의 최근 항목</span>에 있어요.<br>
+                        <span class="text-xs text-slate-500">위 이미지를 확인하고 클래스룸/패들렛에 올려 주세요.</span>`;
+                })
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return; // 학생이 공유 창을 닫은 경우
+                    document.getElementById('cert-share-guide').innerHTML =
+                        `👆 공유가 안 되는 기기예요. 위 이미지를 <span class="text-emerald-700">꾹 길게 눌러</span> 저장해 주세요.`;
+                });
+        }
+        // [추가] 학습 기록을 주소에 담아 외부 브라우저(크롬/사파리)로 옮겨 열기
+        const CERT_MOVE_PARAM = 'eunjimon-move';
+        function certEncode(obj) {
+            const bin = unescape(encodeURIComponent(JSON.stringify(obj)));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function certDecode(str) {
+            const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+        }
+        function certOpenExternal() {
+            saveProgress();
+            let saved = null;
+            try { saved = localStorage.getItem(SAVE_KEY); } catch (e) { }
+            // [수정] 개인정보 보호: 학번·이름은 주소에 싣지 않음(학습 기록만 넘김). 학생이 크롬에서 다시 입력
+            const payload = certEncode({ k: SAVE_KEY, d: saved });
+            const base = location.origin + location.pathname;
+            const ua = navigator.userAgent || '';
+            const isAndroid = /Android/i.test(ua);
+            if (/KAKAOTALK/i.test(ua)) {
+                // 카카오톡 공식 '외부 브라우저로 열기' 주소
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(`${base}#${CERT_MOVE_PARAM}=${payload}`);
+            } else if (isAndroid) {
+                // 안드로이드: 크롬 앱으로 바로 열기
+                const noScheme = `${base}?${CERT_MOVE_PARAM}=${payload}`.replace(/^https?:\/\//, '');
+                location.href = `intent://${noScheme}#Intent;scheme=${location.protocol.replace(':', '')};package=com.android.chrome;end`;
+            } else {
+                // 아이폰(카카오톡 외 앱): 사파리로 열기 (iOS 17 이상)
+                location.href = `x-safari-${base}#${CERT_MOVE_PARAM}=${payload}`;
+            }
+            setTimeout(() => {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `🔄 안 열리면 화면 오른쪽 위/아래 <b>⋮ 또는 ⋯</b> → <b>'다른 브라우저로 열기'</b>를 눌러 주세요.<br>
+                    <span class="text-xs text-slate-500">이 경우 학습 기록은 넘어가지 않으니, 열린 화면에서 같은 휴대폰으로 다시 이어서 풀어야 해요.</span>`;
+            }, 2500);
+        }
+        // 크롬/사파리에서 열렸을 때 넘어온 기록 받기 (기존 기록보다 경험치가 같거나 많을 때만 덮어씀)
+        function certImportFromUrl() {
+            try {
+                const re = new RegExp('[#?&]' + CERT_MOVE_PARAM + '=([A-Za-z0-9_-]+)');
+                const m = (location.hash + '&' + location.search).match(re);
+                if (!m) return null;
+                history.replaceState(null, '', location.pathname);  // 주소창에서 기록 지우기
+                const p = certDecode(m[1]);
+                if (p.k !== SAVE_KEY) return null;
+                if (p.d) {
+                    const inXp = Number(JSON.parse(p.d).xp) || 0;
+                    const cur = localStorage.getItem(SAVE_KEY);
+                    const curXp = cur ? (Number(JSON.parse(cur).xp) || 0) : -1;
+                    if (inXp >= curXp) localStorage.setItem(SAVE_KEY, p.d);
+                }
+                return true;
+            } catch (e) { return null; }
+        }
+        function certIsMobile() {
+            const ua = navigator.userAgent || '';
+            return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+        // [추가] 저장한 인증서를 새 창(탭)에 크게 보여 줌. 창이 막혔으면 저장 창의 미리보기로 대신함
+        function showCertInWindow(win, url, fileName) {
+            if (!win || win.closed) return;
+            try {
+                const d = win.document;
+                d.open();
+                d.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title></title></head>
+                    <body style="margin:0;background:#FFFBEB;font-family:'Noto Sans KR',sans-serif;text-align:center;padding:16px;">
+                    <p style="color:#047857;font-weight:800;margin:6px 0;">✅ 다운로드 폴더에 저장한 인증서예요</p>
+                    <p style="color:#78716C;font-size:13px;margin:0 0 12px;"></p>
+                    <img alt="학습 완료 인증서" style="max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.18);">
+                    </body></html>`);
+                d.close();
+                d.title = fileName;
+                d.querySelectorAll('p')[1].textContent = fileName;  // 파일 이름은 글자로만 넣음
+                d.querySelector('img').src = url;
+                win.focus();
+            } catch (e) { /* 새 창이 막히면 저장 창 미리보기로 충분 */ }
+        }
+        function downloadCertFile() {
+            if (!certImageData) return;
+            if (certIsMobile()) {
+                document.getElementById('cert-share-guide').innerHTML =
+                    `💾 다운로드했어요! 아이폰·아이패드는 <span class="text-emerald-700">파일 앱 → 다운로드</span>,
+                    안드로이드는 <span class="text-emerald-700">내 파일 → 다운로드</span>(갤러리의 Download 앨범)에 있어요.<br>
+                    <span class="text-xs text-slate-500">파일이 안 보이면 위 이미지를 꾹 길게 눌러 저장하세요.</span>`;
+            }
+            const { url, blob, fileName } = certImageData;
+            const a = document.createElement('a');
+            a.href = blob ? URL.createObjectURL(blob) : url; a.download = fileName;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            if (blob) setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        }
+
+        // ==========================================
+        // 7. 스테이지 탭 및 공통 UI 헬퍼
+        // ==========================================
+        function renderTabs() {
+            const tabsEl = document.getElementById('stage-tabs');
+            tabsEl.innerHTML = STAGE_LIST.map(st => {
+                const isActive = state.currentStage === st.id;
+                const isCleared = state.clearedStages.has(st.id);
+                return `
+                <button onclick="switchStage(${st.id})" class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition flex items-center gap-1.5 border-2 ${
+                    isActive
+                        ? 'bg-amber-500 text-white border-amber-700 shadow-sm'
+                        : isCleared
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400 hover:bg-emerald-200'
+                            : 'bg-white text-amber-900 border-amber-300 hover:bg-yellow-50'
+                }">
+                    <span>${isCleared ? '✅' : '⚡'}</span>
+                    <span>${st.short}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function switchStage(stageId) {
+            state.currentStage = stageId;
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleColorHelper() {
+            state.showColorHelper = !state.showColorHelper;
+            renderCurrentStage();
+        }
+
+        function rerollStage(stageId) {
+            clearStageInputs(`s${stageId}-`);
+            if (stageId === 1) state.s1 = createStage1Data(true);
+            if (stageId === 2) state.s2 = createStage2Data(true);
+            if (stageId === 3) state.s3 = createStage3Data(true);
+            if (stageId === 4) state.s4 = createStage4Data(true);
+            playSound('correct');
+            renderCurrentStage();
+        }
+
+        function resetStageToOriginal(stageId) {
+            clearStageInputs(`s${stageId}-`);
+            if (stageId === 1) state.s1 = createStage1Data(false);
+            if (stageId === 2) state.s2 = createStage2Data(false);
+            if (stageId === 3) state.s3 = createStage3Data(false);
+            if (stageId === 4) state.s4 = createStage4Data(false);
+            renderCurrentStage();
+        }
+
+        function renderStageHeader(stageId, subtitle, allowRandom = false) {
+            const st = STAGE_LIST[stageId];
+            const dataObj = state[`s${stageId}`];
+            const isRand = dataObj && dataObj.isRandom;
+
+            return `
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b-2 border-amber-200 pb-4 mb-5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-amber-400 text-amber-950 font-game text-xs sm:text-sm px-3 py-0.5 rounded-full border border-amber-600">
+                            ${st.short} · 보상 +${st.xp} XP
+                        </span>
+                        ${isRand ? '<span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300">🎲 랜덤 변형 문제</span>' : '<span class="bg-yellow-100 text-amber-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">📄 기본 학습지 문제</span>'}
+                    </div>
+                    <h2 class="font-game text-2xl sm:text-3xl text-amber-950 mt-1.5">${st.title}</h2>
+                    <p class="text-xs sm:text-sm text-amber-800 mt-0.5">${subtitle}</p>
+                </div>
+
+                ${allowRandom ? `
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="rerollStage(${stageId})" class="bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 text-amber-950 font-extrabold text-xs sm:text-sm px-3.5 py-2 rounded-xl border-2 border-amber-600 shadow-sm active:translate-y-0.5 transition flex items-center gap-1.5">
+                        <span>🎲</span><span>새로운 숫자 생성 (무한 연습)</span>
+                    </button>
+                    ${isRand ? `
+                    <button onclick="resetStageToOriginal(${stageId})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-300 transition">
+                        기본 문제로 복귀
+                    </button>` : ''}
+                </div>` : ''}
+            </div>`;
+        }
+
+        function renderInputGuideBanner(showColorToggle = false) {
+            return `
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold">
+                    <span class="text-base">💡</span>
+                    <span>숫자(또는 분수)를 입력한 뒤 <kbd class="px-1.5 py-0.5 bg-white border border-amber-400 rounded font-mono text-xs">Enter</kbd>를 누르거나 다음 칸으로 이동하면 즉시 채점됩니다!</span>
+                </div>
+                ${showColorToggle ? `
+                <button onclick="toggleColorHelper()" class="px-3 py-1.5 rounded-xl font-bold text-xs border-2 transition ${
+                    state.showColorHelper
+                        ? 'bg-amber-600 text-white border-amber-800'
+                        : 'bg-white text-amber-900 border-amber-400 hover:bg-yellow-100'
+                }">
+                    🎨 ${state.showColorHelper ? '이동 구역 색칠 힌트 끄기' : '대물림(노랑)·상승(초록)·하강(빨강) 구역 색칠 켜기'}
+                </button>` : ''}
+            </div>`;
+        }
+
+        function makeNumInput(id, answer, unit, label, hint, placeholder = '?', reqFrac = false, widthClass = 'w-20 sm:w-24') {
+            const saved = state.userInputs[id];
+            const savedVal = saved && saved.value !== undefined ? saved.value : '';
+            let stateClasses = 'border-amber-300 bg-yellow-50/50 focus:bg-white focus:border-amber-500';
+            if (saved && saved.valid === 'true') {
+                stateClasses = 'border-emerald-500 bg-emerald-50 text-emerald-800';
+            } else if (saved && saved.valid === 'false') {
+                stateClasses = 'border-red-500 bg-red-50 text-red-700';
+            }
+
+            return `
+            <div class="inline-flex items-center justify-center gap-1">
+                <input
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    id="${id}"
+                    value="${savedVal}"
+                    data-answer="${answer}"
+                    data-reqfrac="${reqFrac}"
+                    data-label="${label}"
+                    data-hint="${hint.replace(/"/g, '&quot;')}"
+                    oninput="handleCellInput(this)"
+                    onkeydown="handleCellEnter(event, this)"
+                    onblur="handleCellBlur(this)"
+                    placeholder="${placeholder}"
+                    class="${widthClass} text-center font-extrabold text-sm sm:text-base py-1.5 px-2 rounded-xl border-2 focus:outline-none transition ${stateClasses}"
+                >
+                ${unit ? `<span class="text-xs sm:text-sm font-bold text-amber-900 shrink-0">${unit}</span>` : ''}
+            </div>`;
+        }
+
+        // ==========================================
+        // 8. 각 스테이지(Stage 0 ~ 5) 렌더링 및 검증
+        // ==========================================
+        function renderCurrentStage() {
+            const container = document.getElementById('stage-container');
+            switch (state.currentStage) {
+                case 0: container.innerHTML = renderStage0(); break;
+                case 1: container.innerHTML = renderStage1(); break;
+                case 2: container.innerHTML = renderStage2(); break;
+                case 3: container.innerHTML = renderStage3(); break;
+                case 4: container.innerHTML = renderStage4(); break;
+                case 5: container.innerHTML = renderStage5(); break;
+            }
+            saveProgress();   // 화면이 바뀔 때마다(선택·O/X·스테이지 이동·🎲) 저장
+        }
+
+        // --- STAGE 0: 학습지 1쪽 상단 (비와 비율 마스터) ---
+        function renderStage0() {
+            const mcItems = [
+                {
+                    key: 'q4',
+                    title: '4. 부모세대 계층 대비 자녀세대 계층',
+                    options: ['자녀세대 계층 / 부모세대 계층', '부모세대 계층 / 자녀세대 계층'],
+                    correct: 0,
+                    hint: '<strong>‘A 대비 B’</strong>에서는 무조건 앞에 있는 <strong>A(부모세대 계층)가 분모(기준량)</strong>가 되고, 뒤에 있는 B(자녀세대 계층)가 분자가 된다!'
+                },
+                {
+                    key: 'q5',
+                    title: '5. 부모세대 계층 대비 계층 대물림',
+                    options: ['부모세대 계층 / 계층 대물림', '계층 대물림 / 부모세대 계층'],
+                    correct: 1,
+                    hint: '<strong>‘부모세대 계층 대비’</strong>이므로 전체(100)가 아니라 <strong>부모세대 계층이 분모</strong>가 되고, 계층 대물림(일치) 인구가 분자가 된다!'
+                },
+                {
+                    key: 'q6',
+                    title: '6. 자녀세대 상층인구 중 부모와 계층 일치',
+                    options: ['(부모 상층 & 자녀 상층) / 자녀세대 상층인구', '(부모 상층 & 자녀 상층) / 부모세대 상층인구'],
+                    correct: 0,
+                    hint: '<strong>‘A 중 B’</strong> 역시 앞에 있는 <strong>A(자녀세대 상층인구)가 분모</strong>가 된다!'
+                },
+                {
+                    key: 'q7',
+                    title: '7. 부모가 중층인 자녀 중 세대 간 상승이동한 사람',
+                    options: ['(부모 중층 & 자녀 상층) / 자녀 상층 전체', '(부모 중층 & 자녀 상층) / 부모가 중층인 자녀 전체'],
+                    correct: 1,
+                    hint: '<strong>‘부모가 중층인 자녀 중’</strong>이므로 분모는 <strong>부모가 중층인 자녀 전체</strong>이고, 그중 상승 이동한 사람은 자녀가 상층이 된 사람뿐이야!'
+                }
+            ];
+
+            return `
+            ${renderStageHeader(0, '‘~대비’, ‘~에 대한’, ‘~중’ 앞에 오는 말이 무조건 분모(기준량)가 됩니다!', false)}
+            ${renderInputGuideBanner(false)}
+
+            <!-- 1~3번 숫자/분수/백분율 계산 (예시 없이 ? 표시) -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-6">
+                <table class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400">
+                            <th class="p-3 w-1/3">비 / 문장 표현</th>
+                            <th class="p-3 w-1/3">분수 (비교량 / 기준량)</th>
+                            <th class="p-3 w-1/3">백분율 (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 text-sm">
+                        <tr class="bg-white">
+                            <td class="p-3 font-extrabold text-amber-950">1. 13 : 25</td>
+                            <td class="p-3">${makeNumInput('s0-frac-1', 13/25, '', '1번 (13 : 25)의 분수', '‘13 : 25’에서 뒤에 있는 <strong>25가 기준량(분모)</strong>이야! 분수 형태(비교량/기준량)로 입력해 봐!', '?', true, 'w-24 sm:w-28')}</td>
+                            <td class="p-3">${makeNumInput('s0-pct-1', 52, '%', '1번 (13 : 25)의 백분율', '(13 ÷ 25) × 100을 계산해 봐!')}</td>
+                        </tr>
+                        <tr class="bg-amber-50/50">
+                            <td class="p-3 font-extrabold text-amber-950">2. 7 대 10</td>
+                            <td class="p-3">${makeNumInput('s0-frac-2', 7/10, '', '2번 (7 대 10)의 분수', '‘7 대 10’에서 뒤에 있는 <strong>10이 기준량(분모)</strong>이야! 분수 형태(비교량/기준량)로 입력해 봐!', '?', true, 'w-24 sm:w-28')}</td>
+                            <td class="p-3">${makeNumInput('s0-pct-2', 70, '%', '2번 (7 대 10)의 백분율', '(7 ÷ 10) × 100을 계산해 봐!')}</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-3 font-extrabold text-amber-950">3. 25에 대한 23의 비</td>
+                            <td class="p-3">${makeNumInput('s0-frac-3', 23/25, '', '3번 (25에 대한 23의 비)의 분수', '조심해! <strong>‘~에 대한’ 앞에 있는 숫자가 기준량(분모)</strong>이야! 분수 형태(비교량/기준량)로 입력해 봐!', '?', true, 'w-24 sm:w-28')}</td>
+                            <td class="p-3">${makeNumInput('s0-pct-3', 92, '%', '3번 (25에 대한 23의 비)의 백분율', '(23 ÷ 25) × 100을 계산해 봐!')}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 4~7번 문장형 분모·분자 식 선택 -->
+            <div class="space-y-3">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base">
+                    🔍 4~7번 문장 표현에 알맞은 분수 식(비교하는 양 / 기준량)을 골라 보세요!
+                </p>
+                ${mcItems.map(item => {
+                    const picked = state.s0.mcAnswers[item.key];
+                    return `
+                    <div class="bg-yellow-50/80 border-2 border-amber-300 rounded-2xl p-4">
+                        <div class="font-extrabold text-amber-950 text-sm sm:text-base mb-2.5">${item.title}</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            ${item.options.map((opt, idx) => `
+                                <button onclick="selectS0Mc('${item.key}', ${idx}, ${item.correct}, '${item.title}', '${item.hint}')"
+                                    class="py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm border-2 text-left transition ${
+                                        picked === idx
+                                            ? 'bg-emerald-100 border-emerald-500 text-emerald-950'
+                                            : 'bg-white border-amber-200 hover:border-amber-400 text-amber-900'
+                                    }">
+                                    ${picked === idx ? '✅ ' : '⬜ '} ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s0-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage0()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 0 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS0Mc(key, idx, correctIdx, title, hint) {
+            if (idx === correctIdx) {
+                state.s0.mcAnswers[key] = idx;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(title, hint);
+            }
+        }
+
+        function verifyStage0() {
+            const ids = ['s0-frac-1', 's0-pct-1', 's0-frac-2', 's0-pct-2', 's0-frac-3', 's0-pct-3'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '1~3번의 분수와 백분율 빈칸을 모두 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            const mcKeys = ['q4', 'q5', 'q6', 'q7'];
+            if (!mcKeys.every(k => state.s0.mcAnswers[k] !== undefined)) {
+                showGoblinModal('4~7번 분수 식 미선택', '4~7번 문항의 올바른 분수 식을 모두 선택해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(0);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s0-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 0 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">분모(기준량) 찾는 공식을 완벽히 마스터했습니다! 이제 1쪽 하단 연습표로 가볼까요?</p>
+                <button onclick="switchStage(1)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 1 (계층 이동 연습표) 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 1: 학습지 1쪽 하단 (계층 이동 연습표: 행=자녀, 열=부모) ---
+        function renderStage1() {
+            const d = state.s1;
+            const getHl = (r, c) => {
+                if (!state.showColorHelper) return '';
+                if (r === c) return 'cell-hl-stable';
+                if (r < c) return 'cell-hl-up';
+                return 'cell-hl-down';
+            };
+
+            return `
+            ${renderStageHeader(1, '주의! 이 표는 가로줄(행)이 자녀 세대, 세로줄(열)이 부모 세대입니다. 축 방향을 꼭 확인하세요!', true)}
+            ${renderInputGuideBanner(true)}
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[440px] text-sm sm:text-base font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400 w-28">구분<br><span class="text-xs font-normal">(단위: %)</span></th>
+                            <th colspan="3" class="p-2 border-r-2 border-amber-400">부모 세대 계층</th>
+                            <th rowspan="2" class="p-2.5 bg-amber-200 w-20">계</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">상층</th>
+                            <th class="p-2 border-r border-amber-300">중층</th>
+                            <th class="p-2 border-r-2 border-amber-400">하층</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 상층</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(0,0)}">${d.cells[0][0]}</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(0,1)}">${d.cells[0][1]}</td>
+                            <td class="p-3 border-r-2 border-amber-400 ${getHl(0,2)}">${d.cells[0][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.childSums[0]}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 중층</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(1,0)}">${d.cells[1][0]}</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(1,1)}">${d.cells[1][1]}</td>
+                            <td class="p-3 border-r-2 border-amber-400 ${getHl(1,2)}">${d.cells[1][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.childSums[1]}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 하층</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(2,0)}">${d.cells[2][0]}</td>
+                            <td class="p-3 border-r border-amber-200 ${getHl(2,1)}">${d.cells[2][1]}</td>
+                            <td class="p-3 border-r-2 border-amber-400 ${getHl(2,2)}">${d.cells[2][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.childSums[2]}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-amber-200/80 border-t-2 border-amber-400 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400">계</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.parentSums[0]}</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.parentSums[1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.parentSums[2]}</td>
+                            <td class="p-2.5 bg-amber-300">100</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="space-y-4">
+                <!-- 1 & 2. 부모/자녀 계층 구성 및 계층구조 유형 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-yellow-50/70 border-2 border-amber-300 rounded-2xl p-4 space-y-3">
+                        <p class="font-extrabold text-amber-950 text-sm sm:text-base">1. 부모 세대 계층 구성 비율 & 계층구조 유형</p>
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold">
+                            <span>상:</span>${makeNumInput('s1-p-u', d.parentSums[0], '%', '부모 세대 상층 비율', `부모 세대는 세로줄(열)이므로 맨 아래 '계' 행에서 상층 합계(<strong>${d.parentSums[0]}%</strong>)를 찾아봐!`, '?', false, 'w-16')}
+                            <span>중:</span>${makeNumInput('s1-p-m', d.parentSums[1], '%', '부모 세대 중층 비율', `맨 아래 '계' 행에서 부모 중층 합계(<strong>${d.parentSums[1]}%</strong>)를 확인해 봐!`, '?', false, 'w-16')}
+                            <span>하:</span>${makeNumInput('s1-p-l', d.parentSums[2], '%', '부모 세대 하층 비율', `맨 아래 '계' 행에서 부모 하층 합계(<strong>${d.parentSums[2]}%</strong>)를 확인해 봐!`, '?', false, 'w-16')}
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            ${['다이아몬드형', '피라미드형'].map(sh => `
+                                <button onclick="selectS1Shape('parent', '${sh}')" class="py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                                    d.userParentShape === sh ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                                }">${sh}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50/70 border-2 border-amber-300 rounded-2xl p-4 space-y-3">
+                        <p class="font-extrabold text-amber-950 text-sm sm:text-base">2. 자녀 세대 계층 구성 비율 & 계층구조 유형</p>
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold">
+                            <span>상:</span>${makeNumInput('s1-c-u', d.childSums[0], '%', '자녀 세대 상층 비율', `자녀 세대는 가로줄(행)이므로 맨 오른쪽 '계' 열에서 자녀 상층 합계(<strong>${d.childSums[0]}%</strong>)를 찾아봐!`, '?', false, 'w-16')}
+                            <span>중:</span>${makeNumInput('s1-c-m', d.childSums[1], '%', '자녀 세대 중층 비율', `맨 오른쪽 '계' 열에서 자녀 중층 합계(<strong>${d.childSums[1]}%</strong>)를 확인해 봐!`, '?', false, 'w-16')}
+                            <span>하:</span>${makeNumInput('s1-c-l', d.childSums[2], '%', '자녀 세대 하층 비율', `맨 오른쪽 '계' 열에서 자녀 하층 합계(<strong>${d.childSums[2]}%</strong>)를 확인해 봐!`, '?', false, 'w-16')}
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            ${['다이아몬드형', '피라미드형'].map(sh => `
+                                <button onclick="selectS1Shape('child', '${sh}')" class="py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                                    d.userChildShape === sh ? 'bg-amber-500 text-white border-amber-700 shadow' : 'bg-white text-amber-950 border-amber-300 hover:bg-amber-50'
+                                }">${sh}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3~5. 대물림, 상승이동, 하강이동 총합 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-4 flex flex-col justify-between">
+                        <span class="font-extrabold text-amber-950 text-xs sm:text-sm mb-2">3. 세대 간 계층 일치(대물림) 비율</span>
+                        <div class="flex justify-end">
+                            ${makeNumInput('s1-stable', d.stable, '%', '세대 간 계층 일치(대물림) 비율', `부모와 자녀 계층이 같은 대각선 3칸을 더해 봐! <strong>${d.cells[0][0]}% + ${d.cells[1][1]}% + ${d.cells[2][2]}% = ${d.stable}%</strong>야!`)}
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 flex flex-col justify-between">
+                        <span class="font-extrabold text-emerald-950 text-xs sm:text-sm mb-2">4. 세대 간 상승 이동 총합</span>
+                        <div class="flex justify-end">
+                            ${makeNumInput('s1-up', d.up, '%', '세대 간 상승 이동 총합', `이 표는 가로(행)가 자녀야! 부모보다 자녀 계층이 높은 대각선 위쪽 3칸(부중→자상 <strong>${d.cells[0][1]}%</strong> + 부하→자상 <strong>${d.cells[0][2]}%</strong> + 부하→자중 <strong>${d.cells[1][2]}%</strong>)을 더하면 <strong>${d.up}%</strong>야!`)}
+                        </div>
+                    </div>
+                    <div class="bg-red-50 border-2 border-red-300 rounded-2xl p-4 flex flex-col justify-between">
+                        <span class="font-extrabold text-red-950 text-xs sm:text-sm mb-2">5. 세대 간 하강 이동 총합</span>
+                        <div class="flex justify-end">
+                            ${makeNumInput('s1-down', d.down, '%', '세대 간 하강 이동 총합', `부모보다 자녀 계층이 낮아진 대각선 아래쪽 3칸(부상→자중 <strong>${d.cells[1][0]}%</strong> + 부상→자하 <strong>${d.cells[2][0]}%</strong> + 부중→자하 <strong>${d.cells[2][1]}%</strong>)을 더하면 <strong>${d.down}%</strong>야!`)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="s1-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage1()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 1 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS1Shape(target, shape) {
+            const d = state.s1;
+            if (target === 'parent') {
+                d.userParentShape = shape;
+                if (shape !== d.parentShape) {
+                    showGoblinModal('부모 세대 계층구조 유형', `부모 세대 비율은 상 ${d.parentSums[0]}% : 중 ${d.parentSums[1]}% : 하 ${d.parentSums[2]}%이므로 <strong>${d.parentShape}</strong>이야!`);
+                } else {
+                    playSound('correct');
+                }
+            } else {
+                d.userChildShape = shape;
+                if (shape !== d.childShape) {
+                    showGoblinModal('자녀 세대 계층구조 유형', `자녀 세대 비율은 상 ${d.childSums[0]}% : 중 ${d.childSums[1]}% : 하 ${d.childSums[2]}%이므로 <strong>${d.childShape}</strong>이야!`);
+                } else {
+                    playSound('correct');
+                }
+            }
+            renderCurrentStage();
+        }
+
+        function verifyStage1() {
+            const ids = ['s1-p-u', 's1-p-m', 's1-p-l', 's1-c-u', 's1-c-m', 's1-c-l', 's1-stable', 's1-up', 's1-down'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '1~5번의 모든 숫자 빈칸을 빠짐없이 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            if (state.s1.userParentShape !== state.s1.parentShape || state.s1.userChildShape !== state.s1.childShape) {
+                showGoblinModal('계층구조 유형 미선택', '부모 세대와 자녀 세대의 계층구조 유형 버튼을 모두 올바르게 선택해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(1);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료 · 랜덤 문제 생성 시 추가 XP 획득 가능!)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s1-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 1 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">기초 계층 이동표 분석을 완벽히 정복했습니다! 이제 2쪽 실전 1번 빈칸 추론으로 가볼까요?</p>
+                <button onclick="switchStage(2)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 2 (표 분석 실전 1) 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 2: 학습지 2쪽 상단 (표 분석 실전 1: 9칸 추론 & 일치 대비 불일치 비율) ---
+        function renderStage2() {
+            const d = state.s2;
+            const rowNames = ['부모 상층', '부모 중층', '부모 하층'];
+            const colNames = ['자녀 상층', '자녀 중층', '자녀 하층'];
+
+            return `
+            ${renderStageHeader(2, '제시된 자료와 조건을 이용해 9칸 계층표를 직접 완성하고, [일치 인구 대비 불일치 인구 비율]을 구하세요!', true)}
+            ${renderInputGuideBanner(false)}
+
+            <!-- 제시 자료 & 추가 조건 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-xs sm:text-sm">
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5">
+                    <div class="font-extrabold text-amber-950 mb-2">📋 [제시 자료] 세대별 계층 구성 및 일치율</div>
+                    <table class="w-full text-center bg-white rounded-xl overflow-hidden border border-amber-300 font-bold">
+                        <thead class="bg-yellow-200 text-amber-950">
+                            <tr>
+                                <th class="p-1.5 border border-amber-300">구분</th>
+                                <th class="p-1.5 border border-amber-300">부모 세대</th>
+                                <th class="p-1.5 border border-amber-300">자녀 세대</th>
+                                <th class="p-1.5 border border-amber-300 text-orange-800">부모 대비 일치율</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-1.5 border border-amber-200">상층</td>
+                                <td class="p-1.5 border border-amber-200">${d.pSums[0]}%</td>
+                                <td class="p-1.5 border border-amber-200">${d.cSums[0]}%</td>
+                                <td class="p-1.5 border border-amber-200 text-orange-700 font-extrabold">${d.matchRates[0]}%</td>
+                            </tr>
+                            <tr>
+                                <td class="p-1.5 border border-amber-200">중층</td>
+                                <td class="p-1.5 border border-amber-200">${d.pSums[1]}%</td>
+                                <td class="p-1.5 border border-amber-200">${d.cSums[1]}%</td>
+                                <td class="p-1.5 border border-amber-200 text-orange-700 font-extrabold">${d.matchRates[1]}%</td>
+                            </tr>
+                            <tr>
+                                <td class="p-1.5 border border-amber-200">하층</td>
+                                <td class="p-1.5 border border-amber-200">${d.pSums[2]}%</td>
+                                <td class="p-1.5 border border-amber-200">${d.cSums[2]}%</td>
+                                <td class="p-1.5 border border-amber-200 text-orange-700 font-extrabold">${d.matchRates[2]}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4 flex flex-col justify-center space-y-2">
+                    <div class="font-extrabold text-amber-950 text-sm">📌 [필수 조건 & 추론 순서]</div>
+                    <p class="font-bold text-amber-900">• 모든 부모의 자녀는 1명씩임.</p>
+                    <p class="font-extrabold text-red-700">• 자녀 세대 중층 중 부모가 하층인 자녀는 없음 (0%).</p>
+                    <p class="text-xs text-amber-800 pt-1 border-t border-amber-300">
+                        💡 <strong>추론 팁:</strong> ① 대각선 3칸(부모 계층 비율 × 일치율)을 먼저 채우고 → ② 부모 하층 & 자녀 중층에 <strong>0</strong>을 넣은 뒤 → ③ 가로·세로 합계로 나머지 칸을 채우세요!
+                    </p>
+                </div>
+            </div>
+
+            <!-- 9칸 직접 입력 표 (행=부모, 열=자녀) -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[440px] text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2.5 border-r-2 border-amber-400">부모 \\ 자녀</th>
+                            <th class="p-2.5 border-r border-amber-300">자녀 상층</th>
+                            <th class="p-2.5 border-r border-amber-300">자녀 중층</th>
+                            <th class="p-2.5 border-r-2 border-amber-400">자녀 하층</th>
+                            <th class="p-2.5 bg-amber-200">계</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        ${[0, 1, 2].map(r => `
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">${rowNames[r]}</td>
+                            ${[0, 1, 2].map(c => {
+                                let cellHint = '';
+                                if (r === c) {
+                                    cellHint = `${rowNames[r]}(${d.pSums[r]}%)의 부모 대비 일치율이 <strong>${d.matchRates[r]}%</strong>야! 따라서 <strong>${d.pSums[r]} × (${d.matchRates[r]}/100) = ${d.cells[r][c]}%</strong>가 들어가야 해!`;
+                                } else if (r === 2 && c === 1) {
+                                    cellHint = `추가 조건에서 <strong>‘자녀 세대 중층 중 부모가 하층인 자녀는 없음’</strong>이라고 했으므로 이 칸은 무조건 <strong>0%</strong>야!`;
+                                } else {
+                                    cellHint = `대각선 일치 칸(${d.cells[0][0]}, ${d.cells[1][1]}, ${d.cells[2][2]})과 부모하·자녀중(0)을 먼저 구한 뒤, 가로 합(${d.pSums[r]})과 세로 합(${d.cSums[c]})에서 빼면 <strong>${d.cells[r][c]}%</strong>를 구할 수 있어!`;
+                                }
+                                return `<td class="p-2 border-r ${c===2 ? 'border-r-2 border-amber-400' : 'border-amber-200'} ${r===c ? 'bg-yellow-50/70' : ''}">
+                                    ${makeNumInput(`s2-c-${r}-${c}`, d.cells[r][c], '', `${rowNames[r]} → ${colNames[c]}`, cellHint, '?', false, 'w-16 sm:w-20')}
+                                </td>`;
+                            }).join('')}
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.pSums[r]}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-amber-200/80 border-t-2 border-amber-400 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400">계</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.cSums[0]}</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.cSums[1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.cSums[2]}</td>
+                            <td class="p-2.5 bg-amber-300">100</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- 3~6번 비율 계산 문항 -->
+            <div class="space-y-2.5 text-xs sm:text-sm">
+                <div class="bg-yellow-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-amber-950">3. 전체 인구 중 세대 간 계층 일치(대물림) 비율은?</span>
+                    ${makeNumInput('s2-q3', d.totalMatch, '%', '3번 세대 간 계층 일치 비율', `대각선 3칸의 합계를 구해 봐! <strong>${d.cells[0][0]} + ${d.cells[1][1]} + ${d.cells[2][2]} = ${d.totalMatch}%</strong>야!`)}
+                </div>
+                <div class="bg-yellow-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-amber-950">4. 부모 상층에서 <strong>[일치 인구 대비 불일치 인구 비율]</strong>은?</span>
+                    ${makeNumInput('s2-q4', d.q4Ans, '%', '4번 부모 상층 [일치 대비 불일치 비율]', `‘일치 인구 대비’이므로 <strong>일치 인구(${d.cells[0][0]})가 분모</strong>야! 부모 상층(${d.pSums[0]}) 중 불일치 인구는 ${d.pSums[0] - d.cells[0][0]}이므로 <strong>(${d.pSums[0] - d.cells[0][0]} ÷ ${d.cells[0][0]}) × 100 = ${d.q4Ans}%</strong>야!`)}
+                </div>
+                <div class="bg-yellow-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-amber-950">5. 부모 중층에서 <strong>[일치 인구 대비 불일치 인구 비율]</strong>은?</span>
+                    ${makeNumInput('s2-q5', d.q5Ans, '%', '5번 부모 중층 [일치 대비 불일치 비율]', `부모 중층(${d.pSums[1]}) 중 <strong>일치 인구(${d.cells[1][1]})가 분모</strong>, 불일치 인구(${d.pSums[1] - d.cells[1][1]})가 분자야! <strong>(${d.pSums[1] - d.cells[1][1]} ÷ ${d.cells[1][1]}) × 100 = ${d.q5Ans}%</strong>야!`)}
+                </div>
+                <div class="bg-yellow-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-amber-950">6. 부모 하층에서 <strong>[일치 인구 대비 불일치 인구 비율]</strong>은? <span class="text-amber-700">(소수 첫째 자리)</span></span>
+                    ${makeNumInput('s2-q6', d.q6Ans, '%', '6번 부모 하층 [일치 대비 불일치 비율]', `부모 하층(${d.pSums[2]}) 중 <strong>일치 인구(${d.cells[2][2]})가 분모</strong>, 불일치 인구(${d.pSums[2] - d.cells[2][2]})가 분자야! <strong>(${d.pSums[2] - d.cells[2][2]} ÷ ${d.cells[2][2]}) × 100 ≈ ${d.q6Ans}%</strong>야!`)}
+                </div>
+            </div>
+
+            <div id="s2-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage2()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 2 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function verifyStage2() {
+            const ids = [];
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    ids.push(`s2-c-${r}-${c}`);
+                }
+            }
+            ids.push('s2-q3', 's2-q4', 's2-q5', 's2-q6');
+
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '9칸 표와 3~6번 비율 계산 빈칸을 모두 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+
+            const reward = grantStageClear(2);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료 · 랜덤 문제 생성 시 추가 XP 획득 가능!)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s2-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 2 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">9칸 빈칸 추론과 일치 대비 불일치 비율까지 완벽히 풀었습니다!</p>
+                <button onclick="switchStage(3)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 3 (2020.3 학평 20번) 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 3: 학습지 2쪽 하단 (2020년 3월 학평 20번: A,B,C 추론 & 선지 OX) ---
+        function renderStage3() {
+            const d = state.s3;
+            const upperMatchRate = Number(((d.cells[0][0] / d.rowSums[0]) * 100).toFixed(1));
+            const oxItems = [
+                {
+                    idx: 0,
+                    text: '① 부모와 계층이 일치하는 자녀보다 불일치하는 자녀가 많다.',
+                    ans: (100 - d.stable) > d.stable,
+                    hint: `부모와 계층이 일치하는 자녀(대각선 합) = <strong>${d.cells[0][0]} + ${d.cells[1][1]} + ${d.cells[2][2]} = ${d.stable}%</strong>이고, 불일치하는 자녀도 <strong>100 - ${d.stable} = ${100 - d.stable}%</strong>로 서로 같아! 따라서 ‘더 많다’는 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 1,
+                    text: '② 세대 간 하강 이동한 자녀보다 세대 간 상승 이동한 자녀가 많다.',
+                    ans: d.up > d.down,
+                    hint: `A=상층, B=하층, C=중층이므로 <strong>상승 이동(${d.cells[0][1]} + ${d.cells[2][1]} + ${d.cells[0][2]} = ${d.up}%)</strong>이 <strong>하강 이동(${d.cells[1][0]} + ${d.cells[2][0]} + ${d.cells[1][2]} = ${d.down}%)</strong>보다 많아! 따라서 <strong>참(O)</strong>이야!`
+                },
+                {
+                    idx: 2,
+                    text: '③ 부모 세대의 계층 구조와 자녀 세대의 계층 구조는 모두 피라미드형이다.',
+                    ans: false,
+                    hint: `중층인 <strong>C</strong>의 비율이 부모 세대(${d.colSums[2]}%)와 자녀 세대(${d.rowSums[2]}%) 모두 가장 높으므로 둘 다 피라미드형이 아니라 <strong>다이아몬드형</strong>이야! (<strong>거짓 X</strong>)`
+                },
+                {
+                    idx: 3,
+                    text: `④ 자녀 세대에서 상층 인구 중 부모와 계층이 일치하는 인구가 ${upperMatchRate}%를 넘는다.`,
+                    ans: false,
+                    hint: `자녀 세대 상층(A=${d.rowSums[0]}%) 중 부모도 상층(${d.cells[0][0]}%)인 비율은 <strong>(${d.cells[0][0]} ÷ ${d.rowSums[0]}) × 100 = 정확히 ${upperMatchRate}%</strong>이므로 ‘넘는다(초과)’는 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    idx: 4,
+                    text: '⑤ 부모의 계층이 중층인 자녀 중 세대 간 하강 이동한 자녀보다 세대 간 상승 이동한 자녀가 많다.',
+                    ans: d.cells[0][2] > d.cells[1][2],
+                    hint: `부모가 중층(C, 세로 합 ${d.colSums[2]}%)인 자녀 중 상승 이동(자녀 A=${d.cells[0][2]}%)보다 하강 이동(자녀 B=${d.cells[1][2]}%)이 더 많으므로 <strong>거짓(X)</strong>이야!`
+                }
+            ];
+
+            return `
+            ${renderStageHeader(3, '2020년 3월 학평 20번 기출! 단서를 통해 미지수 A, B, C 계층을 먼저 추론하세요.', true)}
+            ${renderInputGuideBanner(false)}
+
+            <!-- 문제 조건 -->
+            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-xs sm:text-sm leading-relaxed text-amber-950">
+                <span class="inline-block bg-amber-600 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full mb-1.5">핵심 단서</span>
+                <p>
+                    표는 자녀 세대 계층을 기준으로 부모 세대의 계층을 조사한 결과이다. A~C는 각각 상층, 중층, 하층 중 하나인데,
+                    <strong class="text-red-700 underline">C에 속해 있는 자녀 중 부모의 계층이 A인 자녀는 세대 간 하강 이동한 사람이고, 부모의 계층이 B인 자녀는 세대 간 상승 이동한 사람이다.</strong>
+                </p>
+            </div>
+
+            <!-- Step 1: A, B, C 계층 매칭 -->
+            <div class="bg-yellow-100/80 border-2 border-amber-400 rounded-2xl p-4 mb-5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-3">🔍 [Step 1] A, B, C는 각각 어느 계층인가요?</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    ${[
+                        { key: 'mapA', label: 'A 계층', correct: '상층' },
+                        { key: 'mapB', label: 'B 계층', correct: '하층' },
+                        { key: 'mapC', label: 'C 계층', correct: '중층' }
+                    ].map(m => `
+                        <div class="bg-white p-3 rounded-xl border border-amber-300">
+                            <div class="font-extrabold text-amber-950 text-xs sm:text-sm mb-2">• ${m.label}의 정체는?</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                ${['상층', '중층', '하층'].map(opt => `
+                                    <button onclick="selectS3Map('${m.key}', '${opt}', '${m.correct}')" class="py-1.5 rounded-lg font-extrabold text-xs border-2 transition ${
+                                        d[m.key] === opt ? 'bg-amber-500 text-white border-amber-700' : 'bg-yellow-50 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                    }">${opt}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- 표 (행=자녀, 열=부모) + 상승/하강 빈칸 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[420px] text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b border-amber-400">
+                            <th rowspan="2" class="p-2.5 border-r-2 border-amber-400">구분 (단위: %)</th>
+                            <th colspan="3" class="p-2 border-r-2 border-amber-400">부모의 계층</th>
+                            <th rowspan="2" class="p-2.5 bg-amber-200">계</th>
+                        </tr>
+                        <tr class="bg-yellow-200 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2 border-r border-amber-300">A ${d.mapA ? `(${d.mapA})` : ''}</th>
+                            <th class="p-2 border-r border-amber-300">B ${d.mapB ? `(${d.mapB})` : ''}</th>
+                            <th class="p-2 border-r-2 border-amber-400">C ${d.mapC ? `(${d.mapC})` : ''}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 A ${d.mapA ? `(${d.mapA})` : ''}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[0][0]}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[0][1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.cells[0][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.rowSums[0]}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 B ${d.mapB ? `(${d.mapB})` : ''}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[1][0]}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[1][1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.cells[1][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.rowSums[1]}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">자녀 C ${d.mapC ? `(${d.mapC})` : ''}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[2][0]}</td>
+                            <td class="p-2.5 border-r border-amber-200">${d.cells[2][1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.cells[2][2]}</td>
+                            <td class="p-2.5 bg-amber-100/60 font-extrabold">${d.rowSums[2]}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-amber-200/80 border-t-2 border-amber-400 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400">계</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.colSums[0]}</td>
+                            <td class="p-2.5 border-r border-amber-300">${d.colSums[1]}</td>
+                            <td class="p-2.5 border-r-2 border-amber-400">${d.colSums[2]}</td>
+                            <td class="p-2.5 bg-amber-300">100</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Step 2: 상승 이동 & 하강 이동 직접 계산 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3.5 flex items-center justify-between">
+                    <span class="font-extrabold text-emerald-950 text-xs sm:text-sm">• 세대 간 상승 이동 총합:</span>
+                    ${makeNumInput('s3-up', d.up, '%', '2020.3 학평 세대 간 상승 이동 총합', `A=상층, B=하층, C=중층이므로 상승 이동은 <strong>부모B(하)→자녀A(상) ${d.cells[0][1]}% + 부모B(하)→자녀C(중) ${d.cells[2][1]}% + 부모C(중)→자녀A(상) ${d.cells[0][2]}% = ${d.up}%</strong>야!`)}
+                </div>
+                <div class="bg-red-50 border-2 border-red-300 rounded-2xl p-3.5 flex items-center justify-between">
+                    <span class="font-extrabold text-red-950 text-xs sm:text-sm">• 세대 간 하강 이동 총합:</span>
+                    ${makeNumInput('s3-down', d.down, '%', '2020.3 학평 세대 간 하강 이동 총합', `하강 이동은 <strong>부모A(상)→자녀B(하) ${d.cells[1][0]}% + 부모A(상)→자녀C(중) ${d.cells[2][0]}% + 부모C(중)→자녀B(하) ${d.cells[1][2]}% = ${d.down}%</strong>야!`)}
+                </div>
+            </div>
+
+            <!-- Step 3: 선지 ①~⑤ OX 판별 -->
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2">🎯 [Step 3] 선지 ①~⑤의 진위(O/X)를 판별하세요!</p>
+                ${oxItems.map(item => {
+                    const cur = d.oxChecks[item.idx];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkS3Ox(${item.idx}, true, ${item.ans}, '${item.hint.replace(/'/g, "\\'")}')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkS3Ox(${item.idx}, false, ${item.ans}, '${item.hint.replace(/'/g, "\\'")}')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s3-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage3()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 3 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function selectS3Map(key, chosen, correct) {
+            if (chosen === correct) {
+                state.s3[key] = chosen;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal('A~C 계층 추론', '단서를 잘 읽어봐! 자녀 C 중 부모가 A이면 <strong>하강 이동(A > C)</strong>이고, 부모가 B이면 <strong>상승 이동(C > B)</strong>이야! 따라서 <strong>A = 상층, C = 중층, B = 하층</strong>이다!');
+            }
+        }
+
+        function checkS3Ox(idx, userVal, correctVal, hint) {
+            if (userVal === correctVal) {
+                state.s3.oxChecks[idx] = userVal;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(`선지 ${idx + 1}번 판별 오류`, hint);
+            }
+        }
+
+        function verifyStage3() {
+            const d = state.s3;
+            if (d.mapA !== '상층' || d.mapB !== '하층' || d.mapC !== '중층') {
+                showGoblinModal('A~C 계층 미완성', '[Step 1]에서 A, B, C가 각각 어느 계층인지 먼저 모두 맞춰보아라!');
+                return;
+            }
+            for (const id of ['s3-up', 's3-down']) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '상승 이동 총합과 하강 이동 총합 빈칸을 모두 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+            if (![0, 1, 2, 3, 4].every(i => d.oxChecks[i] !== null)) {
+                showGoblinModal('선지 OX 미완료', '[Step 3]의 선지 ①~⑤ O/X를 모두 완료해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(3);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료 · 랜덤 문제 생성 시 추가 XP 획득 가능!)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s3-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 3 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">미지수 A·B·C 계층 추론 문제를 완벽히 정복했습니다! 이제 3쪽 실전 2번(2019.11 학평 20번)으로 이동하세요!</p>
+                <button onclick="switchStage(4)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    다음: Stage 4 (3쪽 실전 2) 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 4: 학습지 3쪽 (표 분석 실전 2: 고2 2019년 11월 학평 20번) ---
+        function renderStage4() {
+            const d = state.s4;
+            const rowNames = ['부모 상층', '부모 중층', '부모 하층'];
+            const colNames = ['자녀 상층', '자녀 중층', '자녀 하층'];
+
+            const bogiItems = [
+                {
+                    key: 'g',
+                    text: 'ㄱ. 자녀 세대의 계층 구조는 피라미드형이다.',
+                    ans: false,
+                    hint: `자녀 세대는 상층 ${d.cSums[0]}% : 중층 ${d.cSums[1]}% : 하층 ${d.cSums[2]}%로 중층의 비율이 가장 높은 <strong>다이아몬드형</strong>이야! (<strong>거짓 X</strong>)`
+                },
+                {
+                    key: 'n',
+                    text: 'ㄴ. 부모와 계층이 일치하는 자녀가 불일치하는 자녀보다 적다.',
+                    ans: d.stable < (100 - d.stable),
+                    hint: `계층 일치 비율(대각선 합)은 <strong>${d.cells[0][0]} + ${d.cells[1][1]} + ${d.cells[2][2]} = ${d.stable}%</strong>이고, 불일치 비율은 <strong>${100 - d.stable}%</strong>이므로 일치하는 자녀가 더 적다! (<strong>참 O</strong>)`
+                },
+                {
+                    key: 'd',
+                    text: 'ㄷ. 세대 간 상승 이동 비율이 세대 간 하강 이동 비율의 5배 이상이다.',
+                    ans: d.up >= d.down * 5,
+                    hint: `세대 간 상승 이동은 <strong>${d.cells[1][0]} + ${d.cells[2][0]} + ${d.cells[2][1]} = ${d.up}%</strong>이고, 하강 이동은 <strong>${d.cells[0][1]} + ${d.cells[0][2]} + ${d.cells[1][2]} = ${d.down}%</strong>야! ${d.up}%는 ${d.down}%의 5배(${d.down * 5}%) 이상이 아니므로 <strong>거짓(X)</strong>이야!`
+                },
+                {
+                    key: 'r',
+                    text: 'ㄹ. 자녀 세대 계층 대비 부모와 자녀의 계층 일치 비율은 상층이 가장 높다.',
+                    ans: (d.cells[0][0] / d.cSums[0]) > (d.cells[1][1] / d.cSums[1]) && (d.cells[0][0] / d.cSums[0]) > (d.cells[2][2] / d.cSums[2]),
+                    hint: `분모가 <strong>‘자녀 세대 계층’</strong>이야! 상층은 <strong>${d.cells[0][0]}/${d.cSums[0]}(${Math.round((d.cells[0][0]/d.cSums[0])*100)}%)</strong>, 중층은 <strong>${d.cells[1][1]}/${d.cSums[1]}(${Math.round((d.cells[1][1]/d.cSums[1])*100)}%)</strong>, 하층은 <strong>${d.cells[2][2]}/${d.cSums[2]}(${Math.round((d.cells[2][2]/d.cSums[2])*100)}%)</strong>이므로 상층이 가장 높지 않아! (<strong>거짓 X</strong>)`
+                }
+            ];
+
+            return `
+            ${renderStageHeader(4, '고2 2019년 11월 학평 20번! 상대적 비를 백분율(%)로 바꾸고 9칸 표와 <보기>를 정복하세요!', true)}
+            ${renderInputGuideBanner(false)}
+
+            <!-- 제시 자료 박스 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-xs sm:text-sm">
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 space-y-2">
+                    <div class="font-extrabold text-amber-950">📊 &lt;자료 1&gt; 세대별 계층 간 상대적 비 & 일치율</div>
+                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 font-bold space-y-1">
+                        <div>• 부모 세대 (상 : 중 : 하) = <strong class="text-orange-700">${d.pRatio}</strong></div>
+                        <div>• 자녀 세대 비율 조건: <strong class="text-orange-700">${d.cRatio}</strong></div>
+                    </div>
+                    <div class="grid grid-cols-3 text-center bg-white rounded-xl border border-amber-200 font-extrabold py-2">
+                        <div>부모 상 일치율<br><span class="text-orange-600 text-sm">${d.matchRates[0]}%</span></div>
+                        <div>부모 중 일치율<br><span class="text-orange-600 text-sm">${d.matchRates[1]}%</span></div>
+                        <div>부모 하 일치율<br><span class="text-orange-600 text-sm">${d.matchRates[2]}%</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 border-2 border-purple-300 rounded-2xl p-4 flex flex-col justify-center space-y-2">
+                    <div class="font-extrabold text-purple-950 text-sm">🔑 [결정적 단서]</div>
+                    <p class="font-bold text-purple-900 leading-relaxed">
+                        “부모 세대 상층에서 자녀 세대 상층으로 대물림된 인구와 <strong>부모 세대 상층에서 자녀 세대 하층으로 세대 간 이동한 인구는 같다.</strong>”
+                    </p>
+                    <p class="text-xs text-purple-800 border-t border-purple-200 pt-1.5">
+                        💡 오른쪽 끝 ‘부모 합계’와 맨 아래 ‘자녀 합계’를 먼저 100% 기준으로 채운 뒤 9칸을 추론해 보세요!
+                    </p>
+                </div>
+            </div>
+
+            <!-- 9칸 + 합계 입력 표 -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-amber-400 shadow-sm mb-5">
+                <table class="w-full text-center border-collapse min-w-[460px] text-sm font-bold">
+                    <thead>
+                        <tr class="bg-yellow-300 text-amber-950 border-b-2 border-amber-400">
+                            <th class="p-2.5 border-r-2 border-amber-400">부모 \\ 자녀</th>
+                            <th class="p-2.5 border-r border-amber-300">자녀 상층</th>
+                            <th class="p-2.5 border-r border-amber-300">자녀 중층</th>
+                            <th class="p-2.5 border-r-2 border-amber-400">자녀 하층</th>
+                            <th class="p-2.5 bg-amber-200">부모 합계</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-200 bg-white">
+                        ${[0, 1, 2].map(r => `
+                        <tr>
+                            <td class="p-2.5 border-r-2 border-amber-400 bg-amber-50">${rowNames[r]}</td>
+                            ${[0, 1, 2].map(c => {
+                                let hint = '';
+                                if (r === c) {
+                                    hint = `${rowNames[r]}(${d.pSums[r]}%) × 부모 대비 일치율(${d.matchRates[r]}%) = <strong>${d.cells[r][c]}%</strong>야!`;
+                                } else if (r === 0 && c === 2) {
+                                    hint = `결정적 단서에서 <strong>‘부모 상층→자녀 상층 대물림 인구(${d.cells[0][0]}%)와 부모 상층→자녀 하층 인구는 같다’</strong>고 했으므로 <strong>${d.cells[0][2]}%</strong>야!`;
+                                } else if (r === 0 && c === 1) {
+                                    hint = `부모 상층 합계(${d.pSums[0]}%)에서 자녀 상층(${d.cells[0][0]}%)과 자녀 하층(${d.cells[0][2]}%)을 빼면 <strong>${d.cells[0][1]}%</strong>야!`;
+                                } else {
+                                    hint = `대각선 칸과 1행(${d.cells[0][0]}, ${d.cells[0][1]}, ${d.cells[0][2]})을 채운 뒤 가로·세로 합계를 맞추면 <strong>${d.cells[r][c]}%</strong>가 나와!`;
+                                }
+                                return `<td class="p-2 border-r ${c===2 ? 'border-r-2 border-amber-400' : 'border-amber-200'} ${r===c ? 'bg-yellow-50/70' : ''}">
+                                    ${makeNumInput(`s4-c-${r}-${c}`, d.cells[r][c], '', `${rowNames[r]} → ${colNames[c]}`, hint, '?', false, 'w-16 sm:w-20')}
+                                </td>`;
+                            }).join('')}
+                            <td class="p-2 bg-amber-100/60">
+                                ${makeNumInput(`s4-psum-${r}`, d.pSums[r], '%', `${rowNames[r]} 전체 비율`, `부모 세대 상대적 비(${d.pRatio})를 총합 100%로 환산하면 ${rowNames[r]}은 <strong>${d.pSums[r]}%</strong>야!`, '?', false, 'w-16')}
+                            </td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-amber-200/80 border-t-2 border-amber-400 font-extrabold">
+                            <td class="p-2.5 border-r-2 border-amber-400">자녀 합계</td>
+                            ${[0, 1, 2].map(c => `
+                            <td class="p-2 border-r ${c===2 ? 'border-r-2 border-amber-400' : 'border-amber-300'}">
+                                ${makeNumInput(`s4-csum-${c}`, d.cSums[c], '%', `${colNames[c]} 전체 비율`, `자녀 세대 상대적 비 조건(${d.cRatio})을 총합 100%로 환산하면 ${colNames[c]}은 <strong>${d.cSums[c]}%</strong>야!`, '?', false, 'w-16')}
+                            </td>
+                            `).join('')}
+                            <td class="p-2.5 bg-amber-300">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- <보기> ㄱ, ㄴ, ㄷ, ㄹ OX -->
+            <div class="bg-white border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+                <p class="font-extrabold text-amber-950 text-sm sm:text-base mb-2">🎯 &lt;보기&gt; ㄱ~ㄹ 진위(O/X) 판별</p>
+                ${bogiItems.map(item => {
+                    const cur = d.oxChecks[item.key];
+                    return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 text-xs sm:text-sm ${
+                        cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-yellow-50/50 border-amber-200'
+                    }">
+                        <span class="font-bold text-amber-950 leading-snug">${item.text}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="checkS4Ox('${item.key}', true, ${item.ans}, '${item.hint.replace(/'/g, "\\'")}')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                }">⭕ O</button>
+                            <button onclick="checkS4Ox('${item.key}', false, ${item.ans}, '${item.hint.replace(/'/g, "\\'")}')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                }">❌ X</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s4-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage4()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    Stage 4 최종 정답 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function checkS4Ox(key, userVal, correctVal, hint) {
+            if (userVal === correctVal) {
+                state.s4.oxChecks[key] = userVal;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(`보기 ${key.toUpperCase()} 판별 오류`, hint);
+            }
+        }
+
+        function verifyStage4() {
+            const ids = ['s4-psum-0', 's4-psum-1', 's4-psum-2', 's4-csum-0', 's4-csum-1', 's4-csum-2'];
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    ids.push(`s4-c-${r}-${c}`);
+                }
+            }
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim() === '') {
+                    state.lastFocusedInputId = id;
+                    showGoblinModal('빈칸 미입력', '부모·자녀 합계 칸과 9칸 표의 빈칸을 모두 채워 넣어라!');
+                    return;
+                }
+                if (!validateSingleCell(el, false)) return;
+            }
+
+            const ox = state.s4.oxChecks;
+            if (ox.g === null || ox.n === null || ox.d === null || ox.r === null) {
+                showGoblinModal('<보기> 미완료', '<보기> ㄱ, ㄴ, ㄷ, ㄹ의 O/X를 모두 판별해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(4);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료 · 랜덤 문제 생성 시 추가 XP 획득 가능!)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s4-result').innerHTML = `
+            <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
+                <p class="font-game text-xl text-emerald-800">🎉 Stage 4 클리어! ${xpMsg}</p>
+                <p class="text-sm text-emerald-700 mt-1">최고난도 2019년 11월 학평 20번까지 완벽히 마스터했습니다! 마지막 오개념 OX 스테이지로 이동하세요!</p>
+                <button onclick="switchStage(5)" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm shadow">
+                    마지막: Stage 5 (빈출 오개념 OX) 👉
+                </button>
+            </div>`;
+        }
+
+        // --- STAGE 5: 수능·내신 빈출 오개념 OX ---
+        function renderStage5() {
+            const d = state.s5;
+            const myths = [
+                {
+                    idx: 0,
+                    tag: '함정 1 · 기준량(분모) 착각',
+                    q: '1. “부모 세대 상층 대비 계층 일치 비율”과 “자녀 세대 상층 대비 계층 일치 비율”은 분자가 같으므로 항상 같은 값이다.',
+                    ans: false,
+                    hint: '분자(부모 상층 & 자녀 상층)는 같지만, <strong>분모가 각각 부모 상층 전체 vs 자녀 상층 전체</strong>로 다르기 때문에 두 비율은 다를 수 있어! (<strong>거짓 X</strong>)'
+                },
+                {
+                    idx: 1,
+                    tag: '함정 2 · 일치 대비 불일치',
+                    q: '2. 부모 중층(60%) 중 계층 일치 인구가 24%라면, 부모 중층에서 “일치 인구 대비 불일치 인구 비율”은 150%이다.',
+                    ans: true,
+                    hint: '맞아! 부모 중층(60%) 중 일치=24%, 불일치=36%이고 <strong>‘일치 인구 대비’이므로 24가 분모</strong>가 돼! (36 ÷ 24) × 100 = <strong>150%</strong>이므로 <strong>참(O)</strong>이야!'
+                },
+                {
+                    idx: 2,
+                    tag: '함정 3 · 가로·세로 축 방향',
+                    q: '3. 모든 계층 이동표에서 대각선 오른쪽 위(우상단) 칸들은 무조건 세대 간 하강 이동을 의미한다.',
+                    ans: false,
+                    hint: '절대 외워서 풀면 안 돼! 표의 <strong>가로(행)가 자녀이고 세로(열)가 부모</strong>일 때는 대각선 오른쪽 위가 오히려 <strong>상승 이동</strong>이 돼! 항상 행·열 제목부터 확인해야 해! (<strong>거짓 X</strong>)'
+                },
+                {
+                    idx: 3,
+                    tag: '함정 4 · 계층 구조 형태',
+                    q: '4. 상층 10%, 중층 45%, 하층 45%인 사회는 중층 비율이 상층보다 높으므로 다이아몬드형 계층 구조이다.',
+                    ans: false,
+                    hint: '다이아몬드형은 중층이 <strong>상층보다도 많고 하층보다도 많아야(중 > 상, 중 > 하)</strong> 해! 중층과 하층이 45%로 같으면 다이아몬드형이 아니야! (<strong>거짓 X</strong>)'
+                },
+                {
+                    idx: 4,
+                    tag: '함정 5 · 부모 1명당 자녀 1명 조건',
+                    q: '5. “모든 부모의 자녀는 1명씩이다”라는 조건이 주어지면 부모 세대 전체 인구수와 자녀 세대 전체 인구수는 1:1로 같다.',
+                    ans: true,
+                    hint: '정답! 부모(부부 묶음 기준이 아닌 문제 조건상 1대1 대응)와 자녀가 1명씩 대응되므로 부모 세대 총합(100%)과 자녀 세대 총합(100%)의 실제 인원수 기준이 같아져! (<strong>참 O</strong>)'
+                }
+            ];
+
+            return `
+            ${renderStageHeader(5, '고2 학생들이 시험장에서 가장 많이 속는 5대 함정 선지를 O/X로 완벽히 격파하세요!', false)}
+
+            <div class="space-y-3">
+                ${myths.map(m => {
+                    const cur = d.oxChecks[m.idx];
+                    return `
+                    <div class="bg-yellow-50/70 border-2 ${cur !== null ? 'border-emerald-500 bg-emerald-50/50' : 'border-amber-300'} rounded-2xl p-4">
+                        <span class="inline-block text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 mb-1.5">${m.tag}</span>
+                        <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+                            <p class="font-extrabold text-amber-950 text-xs sm:text-sm leading-relaxed">${m.q}</p>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button onclick="checkS5Ox(${m.idx}, true, ${m.ans}, '${m.hint.replace(/'/g, "\\'")}')"
+                                    class="px-3.5 py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                                        cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
+                                    }">⭕ O</button>
+                                <button onclick="checkS5Ox(${m.idx}, false, ${m.ans}, '${m.hint.replace(/'/g, "\\'")}')"
+                                    class="px-3.5 py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition ${
+                                        cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                                    }">❌ X</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div id="s5-result" class="mt-4"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="verifyStage5()" class="bg-amber-500 hover:bg-amber-600 text-white font-game text-lg px-6 py-3 rounded-2xl border-2 border-amber-700 shadow-md transition">
+                    전 스테이지 마스터 완료 확인 ⚡
+                </button>
+            </div>`;
+        }
+
+        function checkS5Ox(idx, userVal, correctVal, hint) {
+            if (userVal === correctVal) {
+                state.s5.oxChecks[idx] = userVal;
+                playSound('correct');
+                renderCurrentStage();
+            } else {
+                showGoblinModal(`빈출 오개념 ${idx + 1}번`, hint);
+            }
+        }
+
+        function verifyStage5() {
+            const d = state.s5;
+            if (![0, 1, 2, 3, 4].every(i => d.oxChecks[i] !== null)) {
+                showGoblinModal('오개념 OX 미완료', '5개의 빈출 오개념 문항을 모두 O/X로 판별해 보아라!');
+                return;
+            }
+
+            const reward = grantStageClear(5);
+            const xpMsg = reward.alreadyClaimed ? '(이미 획득 완료)' : `(+${reward.gainedXp} XP 획득)`;
+            document.getElementById('s5-result').innerHTML = `
+            <div class="bg-gradient-to-r from-yellow-100 via-emerald-50 to-yellow-100 border-3 border-emerald-500 rounded-2xl p-5 text-center shadow">
+                <p class="font-game text-2xl text-emerald-800">👑 은지몬 계층표 분석 전 스테이지 완전 정복! ${xpMsg}</p>
+                <p class="text-sm text-emerald-900 mt-1 font-medium">
+                    축하합니다! 1~3쪽의 모든 계층 이동표 패턴과 고난도 학평 기출까지 완벽히 마스터했습니다!
+                </p>
+                <button onclick="openCertModal()" class="mt-4 bg-amber-600 hover:bg-amber-700 text-white font-game text-base px-6 py-2.5 rounded-xl border-2 border-amber-800 shadow">
+                    🎓 선생님 제출용 학습 인증서 열기
+                </button>
+            </div>`;
+        }
+
+        // ==========================================
+        // 8-2. [추가] 진행 상황 자동 저장 (같은 기기·같은 브라우저)
+        //      XP, 진화 단계, 클리어 기록, 입력한 답, 선택·O/X, 🎲 랜덤 문제 숫자까지 저장
+        // ==========================================
+        const SAVE_KEY = 'eunjimon-strat-table-v1';
+
+        function saveProgress() {
+            try {
+                const data = {
+                    currentStage: state.currentStage,
+                    xp: state.xp,
+                    currentLevel: state.currentLevel,
+                    clearedStages: [...state.clearedStages],
+                    showColorHelper: state.showColorHelper,
+                    userInputs: state.userInputs,
+                    lastRandomIndex: state.lastRandomIndex,
+                    s0: state.s0, s1: state.s1, s2: state.s2, s3: state.s3, s4: state.s4, s5: state.s5
+                };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+            } catch (e) { /* 저장이 막힌 환경(시크릿 창 등)에서는 조용히 넘어감 */ }
+        }
+
+        function loadProgress() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                const stageIds = STAGE_LIST.map(st => st.id);
+                state.currentStage = stageIds.includes(data.currentStage) ? data.currentStage : 0;
+                state.xp = Number(data.xp) || 0;
+                state.currentLevel = Number(data.currentLevel) || 1;
+                state.clearedStages = new Set((data.clearedStages || []).filter(id => stageIds.includes(id)));
+                state.showColorHelper = !!data.showColorHelper;
+                state.userInputs = data.userInputs || {};
+                if (data.lastRandomIndex) state.lastRandomIndex = data.lastRandomIndex;
+                for (let i = 0; i <= 5; i++) {
+                    if (data[`s${i}`] && typeof data[`s${i}`] === 'object') state[`s${i}`] = data[`s${i}`];
+                }
+            } catch (e) {
+                // 저장 내용이 깨졌으면 처음 상태로
+                state.xp = 0; state.currentLevel = 1; state.clearedStages = new Set(); state.currentStage = 0;
+                initAllProblems();
+            }
+        }
+
+        function resetProgress() {
+            if (!confirm('지금까지의 경험치와 풀이 기록을 모두 지우고 처음부터 시작할까요?')) return;
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
+            state.currentStage = 0;
+            state.xp = 0;
+            state.currentLevel = 1;
+            state.clearedStages = new Set();
+            state.showColorHelper = false;
+            state.lastRandomIndex = { s2: -1, s3: -1, s4: -1 };
+            initAllProblems();
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 9. 앱 초기화
+        // ==========================================
+        window.onload = function () {
+            initAllProblems();
+            const moved = certImportFromUrl();   // [추가] 카카오톡 등에서 넘어온 기록
+            loadProgress();   // [추가] 저장된 진행 상황 불러오기
+            updateHUD();
+            renderTabs();
+            renderCurrentStage();
+            if (moved) {   // [추가] 넘어온 경우 인증서 창을 바로 열어 줌
+                openCertModal();
+                updateCertPreview();
+                const m = document.getElementById('cert-image-msg');
+                m.textContent = '✅ 크롬(인터넷)에서 열렸어요! 학번·이름을 다시 쓰고 [🖼️ 이미지로 저장]을 눌러 주세요.';
+                m.className = 'text-center text-sm font-bold text-emerald-600 mt-2';
+            }
+        };
+    </script>
+</body>
+</html>
