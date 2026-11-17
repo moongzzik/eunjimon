@@ -60,6 +60,19 @@
             background: #FACC15;
             border-radius: 9999px;
         }
+    
+        /* [추가] 휴대폰 화면 대응 */
+        /* 답을 입력하는 동안(자판이 열린 동안) 위쪽 헤더를 고정하지 않음 → 문제·표가 보이는 공간 확보 */
+        body.typing header.sticky { position: relative !important; }
+        /* O/X 버튼: 글자 하나만, 크기 고정 → 글씨가 밀리지 않게 */
+        .ox-btn { width: 2.6rem; height: 2.6rem; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; font-family: 'Jua', sans-serif; font-size: 1.35rem; line-height: 1; flex-shrink: 0; }
+        .ox-text { flex: 1 1 auto; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+        /* [추가] 좁은 휴대폰(폭 420px 이하)에서 헤더 버튼·배지 글자가 두 줄로 밀리지 않게 */
+        header button, header .rounded-full { white-space: nowrap; }
+        @media (max-width: 420px) {
+            header button { padding-left: .5rem !important; padding-right: .5rem !important; font-size: .78rem !important; gap: .2rem !important; }
+            header .rounded-full { font-size: .68rem !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -2689,19 +2702,19 @@
                     ].map(item => {
                         const cur = d.bogiChecks[item.key];
                         return `
-                        <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 ${
+                        <div class="flex flex-nowrap items-center justify-between gap-2 p-3 rounded-xl border-2 ${
                             cur !== null ? 'bg-emerald-50 border-emerald-400' : 'bg-slate-50 border-slate-200'
                         }">
-                            <span class="font-bold text-slate-900 leading-snug">${item.text}</span>
+                            <span class="ox-text font-bold text-slate-900 leading-snug">${item.text}</span>
                             <div class="flex items-center gap-1.5 shrink-0">
                                 <button onclick="checkS6Bogi('${item.key}', true, ${item.answer}, '${item.hint.replace(/'/g, "\\'")}')"
-                                    class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    class="ox-btn rounded-xl font-extrabold border-2 transition ${
                                         cur === true ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-emerald-700 border-emerald-300 hover:bg-emerald-50'
-                                    }">⭕ O</button>
+                                    }" aria-label="O (맞다)">O</button>
                                 <button onclick="checkS6Bogi('${item.key}', false, ${item.answer}, '${item.hint.replace(/'/g, "\\'")}')"
-                                    class="px-3 py-1.5 rounded-lg font-extrabold border-2 transition ${
+                                    class="ox-btn rounded-xl font-extrabold border-2 transition ${
                                         cur === false ? 'bg-red-600 text-white border-red-800' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'
-                                    }">❌ X</button>
+                                    }" aria-label="X (틀리다)">X</button>
                             </div>
                         </div>`;
                     }).join('')}
@@ -2854,6 +2867,55 @@
         // ==========================================
         // 9. 앱 초기화
         // ==========================================
+
+        // ==========================================
+        // [추가] 휴대폰 자판 대응
+        //  1) 정수 답 칸은 숫자 자판(작은 자판)으로, 분수·소수·음수가 필요한 칸은 일반 자판
+        //  2) 입력하는 동안 헤더 고정 해제 + 입력칸을 화면 아래쪽(자판 바로 위)에 두어 위의 문제·표가 보이게
+        //  3) 자판의 Enter 키를 '다음'으로 → 맞히면 다음 칸으로 넘어가 자판이 닫히지 않음
+        // ==========================================
+        const IS_TOUCH_DEVICE = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+        function isAnswerInput(el) { return !!(el && el.matches && el.matches('input[data-answer]')); }
+        function tuneAnswerInputs(root) {
+            const inputs = Array.from((root || document).querySelectorAll('#stage-container input[data-answer]'));
+            inputs.forEach((el, i) => {
+                const nums = [el.dataset.answer, el.dataset.altanswer].filter(v => v !== undefined && v !== '');
+                const needsText = el.dataset.reqfrac === 'true' || nums.some(v => !/^\d+$/.test(String(v).trim()));
+                el.setAttribute('inputmode', needsText ? 'text' : 'numeric');
+                el.setAttribute('enterkeyhint', i < inputs.length - 1 ? 'next' : 'done');
+            });
+        }
+        function keepInputVisible(el) {
+            if (!IS_TOUCH_DEVICE || !el || !document.body.contains(el)) return;
+            const vv = window.visualViewport;
+            const viewH = vv ? vv.height : window.innerHeight;
+            const top = el.getBoundingClientRect().top - (vv ? vv.offsetTop : 0);
+            // 입력칸이 보이는 화면의 55~80% 높이에 오도록 (위쪽 문제·표가 최대한 보이게)
+            if (top < viewH * 0.3 || top > viewH * 0.8) {
+                window.scrollBy({ top: top - viewH * 0.62, behavior: 'smooth' });
+            }
+        }
+        document.addEventListener('focusin', (e) => {
+            if (!isAnswerInput(e.target)) return;
+            document.body.classList.add('typing');
+            const el = e.target;
+            setTimeout(() => keepInputVisible(el), 350);   // 자판이 다 올라온 뒤
+        });
+        document.addEventListener('focusout', () => {
+            setTimeout(() => {
+                if (!isAnswerInput(document.activeElement)) document.body.classList.remove('typing');
+            }, 150);
+        });
+        if (window.visualViewport) {
+            let vvTimer = null;
+            window.visualViewport.addEventListener('resize', () => {
+                clearTimeout(vvTimer);
+                vvTimer = setTimeout(() => { if (isAnswerInput(document.activeElement)) keepInputVisible(document.activeElement); }, 120);
+            });
+        }
+        // 문제가 다시 그려질 때마다 입력칸 자판 종류를 맞춤
+        new MutationObserver(() => tuneAnswerInputs()).observe(document.getElementById('stage-container'), { childList: true, subtree: true });
+
         window.onload = function () {
             initAllProblems();
             const moved = certImportFromUrl();   // [추가] 카카오톡 등에서 넘어온 기록
