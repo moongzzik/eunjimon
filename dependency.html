@@ -516,6 +516,7 @@
             xp: 0,
             currentLevel: 1,
             clearedStages: new Set(),
+            stageWrongs: {},   // [추가] 스테이지별 오답 횟수 (선생님이 어디서 막혔는지 보려고)
             lastFocusedInputId: null,
             userInputs: {},
             wrongCounts: {},   // [추가] 칸별 오답 횟수 (단계별 힌트용)
@@ -778,6 +779,9 @@
         }
 
         function showGoblinModal(label, hint) {
+            // [추가] 지금 스테이지에서 틀린 횟수 세기
+            state.stageWrongs = state.stageWrongs || {};
+            state.stageWrongs[state.currentStage] = (state.stageWrongs[state.currentStage] || 0) + 1;
             playSound('goblin');
             document.getElementById('goblin-svg-box').innerHTML = getScaryGoblinSVG();
             document.getElementById('goblin-target-label').textContent = `틀린 항목: ${label}`;
@@ -981,7 +985,14 @@
             const sid = document.getElementById('student-id-input').value.trim() || '학번미입력';
             const sname = document.getElementById('student-name-input').value.trim() || '이름미입력';
             const curEvo = EVOLUTION_STAGES.find(e => e.level === state.currentLevel) || EVOLUTION_STAGES[0];
-            const text = `[은지몬 사회·문화 인구 부양비 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료`;
+            // [추가] 많이 막힌 곳(오답이 많은 스테이지 3개)을 결과에 붙여 선생님이 다음 수업에 참고
+            const stuckText = (function () {
+                const w = state.stageWrongs || {};
+                const top = Object.keys(w).map(Number).filter(id => w[id] > 0).sort((a, b) => w[b] - w[a]).slice(0, 3);
+                if (!top.length) return '없음 (한 번도 안 틀렸어요)';
+                return top.map(id => { const st = STAGE_LIST.find(s => s.id === id); return `${st ? st.short + ' ' + st.title : 'Stage ' + id}(${w[id]}번)`; }).join(' · ');
+            })();
+            const text = `[은지몬 사회·문화 인구 부양비 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료\n- 많이 막힌 곳: ${stuckText}`;
 
             // [수정] 최신 Clipboard API 우선, 안 되면 예전 방식
             const showDone = () => document.getElementById('copy-feedback').classList.remove('hidden');
@@ -2957,6 +2968,7 @@
                     xp: state.xp,
                     currentLevel: state.currentLevel,
                     clearedStages: [...state.clearedStages],
+                    stageWrongs: state.stageWrongs || {},   // [추가]
                     userInputs: state.userInputs,
                     wrongCounts: state.wrongCounts,
                     s0: pick(state.s0, ['rewardClaimed', 'mcAnswers']),
@@ -2978,6 +2990,7 @@
                 state.xp = Number(data.xp) || 0;
                 state.currentLevel = Number(data.currentLevel) || 1;
                 state.clearedStages = new Set(data.clearedStages || []);
+                state.stageWrongs = (data.stageWrongs && typeof data.stageWrongs === 'object') ? data.stageWrongs : {};   // [추가]
                 state.userInputs = data.userInputs || {};
                 state.wrongCounts = data.wrongCounts || {};
                 Object.assign(state.s0, data.s0 || {});
@@ -2996,6 +3009,7 @@
             state.currentStage = 0;
             state.xp = 0;
             state.currentLevel = 1;
+            state.stageWrongs = {};   // [추가]
             state.clearedStages = new Set();
             state.wrongCounts = {};
             initAllProblems();
