@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>은지몬 - 사회 계층 표분석 연습하기</title>
+    <title>은지몬 - 계층표 분석 심화 과정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -98,7 +98,7 @@
                         </span>
                     </div>
                     <h1 class="text-lg sm:text-2xl font-game text-amber-950 tracking-tight leading-tight mt-0.5">
-                        🧮 은지몬 <span class="text-amber-800 text-base sm:text-lg">사회 계층 표분석 연습하기</span>
+                        🧮 은지몬 <span class="text-amber-800 text-base sm:text-lg">계층표 분석 심화 과정</span>
                     </h1>
                 </div>
             </div>
@@ -146,7 +146,7 @@
 
     <!-- 푸터 -->
     <footer class="text-center py-4 text-xs text-amber-800/70 font-medium">
-        사회·문화 · 사회 계층 표분석 연습 학습 게임 · 은지몬 트레이닝 센터
+        사회·문화 · 계층표 분석 심화 과정 학습 게임 · 은지몬 트레이닝 센터
             <!-- [추가] 저작권 표시 -->
         <div class="mt-1 text-[11px] opacity-80">© 2026 은지쌤(moongzzik) · 무단 복제·수정·배포 및 상업적 이용 금지</div>
     </footer>
@@ -260,7 +260,7 @@
             </div>
             <div id="cert-card-area" class="bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-200 border-4 border-amber-500 rounded-2xl p-5 text-center relative shadow-inner">
                 <div class="text-xs font-extrabold text-amber-700 tracking-widest uppercase">Society & Culture · Stratification Table Practice</div>
-                <h4 class="font-game text-2xl text-amber-950 mt-1">은지몬 계층 표분석 연습 인증서</h4>
+                <h4 class="font-game text-2xl text-amber-950 mt-1">은지몬 계층표 분석 심화 과정 인증서</h4>
                 <div id="cert-avatar" class="w-24 h-24 mx-auto my-3 bg-white rounded-full border-[3px] border-amber-500 flex items-center justify-center shadow"></div>
                 <div class="bg-white/90 rounded-xl p-3 border border-amber-300 text-sm space-y-1.5">
                     <div class="flex justify-between">
@@ -495,7 +495,7 @@
         // 3. 진화 단계 및 스테이지 구성 데이터
         // ==========================================
         const EVOLUTION_STAGES = [
-            { level: 1, minXp: 0, name: 'Lv.1 황금빛 은지몬 알', desc: '사회 계층 표분석 연습을 막 시작한 신비로운 노란 알입니다.' },
+            { level: 1, minXp: 0, name: 'Lv.1 황금빛 은지몬 알', desc: '계층표 분석 심화 과정을 막 시작한 신비로운 노란 알입니다.' },
             { level: 2, minXp: 100, name: 'Lv.2 아기 은지몬', desc: '이동표의 대각선(대물림)·오른쪽 위(상승)·왼쪽 아래(하강)를 한눈에 가르는 귀여운 은지몬!' },
             { level: 3, minXp: 270, name: 'Lv.3 번개 은지몬', desc: '비율(분수)뿐인 표도 기준 수를 정해 실제 인구로 번개처럼 바꾸는 은지몬!' },
             { level: 4, minXp: 480, name: 'Lv.4 히어로 은지몬', desc: 'A·B·C 계층 추론과 빈 이동표 완성까지 척척 해내는 수호자!' },
@@ -1387,7 +1387,7 @@
                 if (!top.length) return '없음 (한 번도 안 틀렸어요)';
                 return top.map(id => { const st = STAGE_LIST.find(s => s.id === id); return `${st ? st.short + ' ' + st.title : 'Stage ' + id}(${w[id]}번)`; }).join(' · ');
             })();
-            const text = `[은지몬 사회·문화 계층 표분석 연습 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료\n- 많이 막힌 곳: ${stuckText}`;
+            const text = `[은지몬 사회·문화 계층표 분석 심화 과정 학습 완료 인증]\n- 학생: ${sid} ${sname}\n- 달성 등급: ${curEvo.name} (${state.xp} XP)\n- 클리어 스테이지: ${state.clearedStages.size} / ${STAGE_LIST.length} 완료\n- 많이 막힌 곳: ${stuckText}`;
 
             // [수정] 최신 Clipboard API 우선, 안 되면 예전 방식
             const showDone = () => document.getElementById('copy-feedback').classList.remove('hidden');
@@ -2449,7 +2449,7 @@
             3: '단서 순서대로 A·B·C를 찾고 이동 방향을 판별했어요!',
             4: '비율만 있던 자료로 이동표 전체를 완성했어요! 가장 어려운 문제를 해냈어요!',
             5: '두 분수에 공통으로 있는 B를 기준으로 놓는 패턴을 익혔어요!',
-            6: '그래프의 두 축도 결국 같은 패턴! 사회 계층 표분석 연습을 모두 마쳤어요!'
+            6: '그래프의 두 축도 결국 같은 패턴! 계층표 분석 심화 과정을 모두 마쳤어요!'
         };
 
         function verifyStage(stageId) {
